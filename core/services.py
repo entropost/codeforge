@@ -71,8 +71,8 @@ class FSRSScheduler:
         rating = rating_map.get(rating_val)
         
         # Reconstruct Card
-        # We infer state: New if 0 reviews, else Review (simplification)
-        state = State.New if record.total_reviews == 0 else State.Review
+        # We infer state: Learning if 0 reviews, else Review (simplification)
+        state = State.Learning if record.total_reviews == 0 else State.Review
         
         card = Card(
             state=state,
@@ -81,10 +81,9 @@ class FSRSScheduler:
             last_review=record.last_review_date
         )
         
-        # Perform review
         # review_card returns (Card, ReviewLog)
         # We need to handle the case where review_card expects a timezone-aware datetime
-        now = datetime.now(timezone.utc)
+        now = timezone.now()
         scheduled_card, review_log = self.scheduler.review_card(card, rating, review_datetime=now)
         
         # Update record
