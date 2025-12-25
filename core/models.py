@@ -57,3 +57,13 @@ class ReviewLog(models.Model):
 
     def __str__(self):
         return f"Review for {self.record.problem.title} on {self.review_date.strftime('%Y-%m-%d')}"
+
+class Course(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    problems = models.ManyToManyField(Problem, related_name='courses')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

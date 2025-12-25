@@ -7,8 +7,17 @@
 {% endif %}
 <form method="post">
     {% csrf_token %}
-    <label for="url">Problem URL (LeetCode only):</label>
-    <input type="url" name="url" id="url" required placeholder="https://leetcode.com/problems/...">
-    <button type="submit">Fetch & Add</button>
+    <label for="url">Problem URL (LeetCode or Codeforces):</label>
+    <input type="url" name="url" id="url" required placeholder="https://leetcode.com/problems/two-sum/">
+
+    <label for="course">Add to Course (Optional):</label>
+    <select name="course" id="course">
+        <option value="">-- No Course --</option>
+        {% for course in courses %}
+        <option value="{{ course.id }}">{{ course.name }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Add Problem</button>
 </form>
 {% endblock %}

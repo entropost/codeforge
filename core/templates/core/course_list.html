@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Courses</h2>
+<a href="{% url 'create_course' %}" class="btn">Create New Course</a>
+
+<div style="margin-top: 20px;">
+    {% for course in courses %}
+    <div class="problem-card">
+        <h3><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></h3>
+        <p>{{ course.description }}</p>
+        <p>Problems: {{ course.problems.count }}</p>
+    </div>
+    {% empty %}
+    <p>No courses yet. Create one to get started!</p>
+    {% endfor %}
+</div>
+{% endblock %}

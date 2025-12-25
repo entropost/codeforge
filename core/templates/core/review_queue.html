@@ -1,7 +1,14 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<h1>Review Queue</h1>
+<h2>Review Queue</h2>
+
+{% if course_id %}
+<div style="background: #e9ecef; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+    Filtering by Course. <a href="{% url 'review_queue' %}">Clear Filter</a>
+</div>
+{% endif %}
+
 {% if due_records %}
 {% for record in due_records %}
 <div class="problem-card">

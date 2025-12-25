@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
-from .models import Problem, UserProblemRecord, ReviewLog
-from .forms import ProblemForm, ReviewForm
+from .models import Problem, UserProblemRecord, ReviewLog, Course
+from .forms import ProblemForm, ReviewForm, CourseForm
 from django.contrib.auth.models import User
 from .services import ProblemFetcher, LevelScheduler, FileManager
 
@@ -14,6 +14,7 @@ def get_user():
 def add_problem(request):
     if request.method == 'POST':
         url = request.POST.get('url')
+        course_id = request.POST.get('course')
         if url:
             try:
                 # 1. Fetch Details
@@ -49,16 +50,25 @@ def add_problem(request):
                         'next_review_date': timezone.now()
                     }
                 )
+
+                # 5. Add to Course if provided
+                if course_id:
+                    course = get_object_or_404(Course, id=course_id, user=get_user())
+                    course.problems.add(problem)
+
                 return redirect('review_queue')
                 
             except Exception as e:
-                return render(request, 'core/add_problem.html', {'error': str(e)})
+                courses = Course.objects.filter(user=get_user())
+                return render(request, 'core/add_problem.html', {'error': str(e), 'courses': courses})
                 
-    return render(request, 'core/add_problem.html')
+    courses = Course.objects.filter(user=get_user())
+    return render(request, 'core/add_problem.html', {'courses': courses})
 
 def batch_add_problems(request):
     if request.method == 'POST':
         urls_raw = request.POST.get('urls', '')
+        course_id = request.POST.get('course')
         # Split by newline or comma and strip whitespace
         import re
         urls = [u.strip() for u in re.split(r'[\n,]', urls_raw) if u.strip()]
@@ -67,6 +77,10 @@ def batch_add_problems(request):
         fm = FileManager()
         user = get_user()
         
+        course = None
+        if course_id:
+            course = get_object_or_404(Course, id=course_id, user=user)
+
         for url in urls:
             try:
                 # 1. Fetch Details
@@ -102,21 +116,38 @@ def batch_add_problems(request):
                         'next_review_date': timezone.now()
                     }
                 )
+
+                # 5. Add to Course if provided
+                if course:
+                    course.problems.add(problem)
+
                 results.append({'url': url, 'status': 'success', 'title': data['title']})
                 
             except Exception as e:
                 results.append({'url': url, 'status': 'error', 'message': str(e)})
         
-        return render(request, 'core/batch_add_problems.html', {'results': results})
+        courses = Course.objects.filter(user=user)
+        return render(request, 'core/batch_add_problems.html', {'results': results, 'courses': courses})
                 
-    return render(request, 'core/batch_add_problems.html')
+    courses = Course.objects.filter(user=get_user())
+    return render(request, 'core/batch_add_problems.html', {'courses': courses})
 
 def review_queue(request):
-    due_records = UserProblemRecord.objects.filter(
-        next_review_date__lte=timezone.now()
-    ).order_by('next_review_date')
+    course_id = request.GET.get('course')
+    user = get_user()
     
-    return render(request, 'core/review_queue.html', {'due_records': due_records})
+    due_records = UserProblemRecord.objects.filter(
+        user=user,
+        next_review_date__lte=timezone.now()
+    )
+
+    if course_id:
+        course = get_object_or_404(Course, id=course_id, user=user)
+        due_records = due_records.filter(problem__in=course.problems.all())
+    
+    due_records = due_records.order_by('next_review_date')
+    
+    return render(request, 'core/review_queue.html', {'due_records': due_records, 'course_id': course_id})
 
 def log_review(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id)
@@ -193,3 +224,26 @@ def delete_problem(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id)
     record.delete()
     return redirect('all_problems')
+
+def course_list(request):
+    courses = Course.objects.filter(user=get_user())
+    return render(request, 'core/course_list.html', {'courses': courses})
+
+def course_detail(request, course_id):
+    course = get_object_or_404(Course, id=course_id, user=get_user())
+    problems = course.problems.all()
+    # Get UserProblemRecords for these problems
+    records = UserProblemRecord.objects.filter(user=get_user(), problem__in=problems)
+    return render(request, 'core/course_detail.html', {'course': course, 'records': records})
+
+def create_course(request):
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save(commit=False)
+            course.user = get_user()
+            course.save()
+            return redirect('course_list')
+    else:
+        form = CourseForm()
+    return render(request, 'core/create_course.html', {'form': form})

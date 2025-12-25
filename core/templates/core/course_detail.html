@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Course: {{ course.name }}</h2>
+<p>{{ course.description }}</p>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn">Review Course</a>
+</div>
+
+<h3>Problems in this Course</h3>
+{% for record in records %}
+<div class="problem-card">
+    <h4>{{ record.problem.title }}</h4>
+    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }}</p>
+    <p>Next Review: {{ record.next_review_date|date:"Y-m-d" }}</p>
+    <a href="{% url 'log_review' record.id %}" class="btn">Review Now</a>
+</div>
+{% empty %}
+<p>No problems in this course yet.</p>
+{% endfor %}
+{% endblock %}
