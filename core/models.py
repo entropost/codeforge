@@ -28,6 +28,16 @@ class UserProblemRecord(models.Model):
     # --- Additional Tracking ---
     total_reviews = models.IntegerField(default=0)
     file_path = models.CharField(max_length=500, blank=True)  # Path to primary solution file
+    
+    def reset_progress(self):
+        from django.utils import timezone
+        self.difficulty = 0.0
+        self.stability = 0.0
+        self.last_review_date = None
+        self.next_review_date = timezone.now()
+        self.total_reviews = 0
+        self.save()
+        self.logs.all().delete()
 
     def __str__(self):
         return f"{self.user.username} - {self.problem.title}"

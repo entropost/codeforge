@@ -128,3 +128,8 @@ def dashboard(request):
 def all_problems(request):
     all_records = UserProblemRecord.objects.select_related('problem').order_by('next_review_date')
     return render(request, 'core/all_problems.html', {'all_records': all_records})
+
+def reset_problem_progress(request, record_id):
+    record = get_object_or_404(UserProblemRecord, id=record_id)
+    record.reset_progress()
+    return redirect(request.META.get('HTTP_REFERER', 'all_problems'))

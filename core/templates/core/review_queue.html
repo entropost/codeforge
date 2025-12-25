@@ -10,6 +10,8 @@
     <p>Next Review: {{ record.next_review_date|date:"Y-m-d H:i" }}</p>
     <a href="{{ record.problem.url }}" target="_blank">View Problem</a>
     <a href="{% url 'log_review' record.id %}" class="btn">Start Review</a>
+    <a href="{% url 'reset_progress' record.id %}" class="btn btn-danger"
+        onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
 </div>
 {% endfor %}
 {% else %}
