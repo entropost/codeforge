@@ -56,6 +56,61 @@ def add_problem(request):
                 
     return render(request, 'core/add_problem.html')
 
+def batch_add_problems(request):
+    if request.method == 'POST':
+        urls_raw = request.POST.get('urls', '')
+        # Split by newline or comma and strip whitespace
+        import re
+        urls = [u.strip() for u in re.split(r'[\n,]', urls_raw) if u.strip()]
+        
+        results = []
+        fm = FileManager()
+        user = get_user()
+        
+        for url in urls:
+            try:
+                # 1. Fetch Details
+                if 'leetcode.com' in url:
+                    data = ProblemFetcher.fetch_leetcode(url)
+                elif 'codeforces.com' in url:
+                    data = ProblemFetcher.fetch_codeforces(url)
+                else:
+                    results.append({'url': url, 'status': 'error', 'message': 'Unsupported URL'})
+                    continue
+                
+                # 2. Create/Get Problem
+                problem, created = Problem.objects.get_or_create(
+                    source=data['source'],
+                    source_id=data['source_id'],
+                    defaults={
+                        'title': data['title'],
+                        'url': data['url'],
+                        'difficulty': data['difficulty'],
+                        'pattern_tags': data['pattern_tags']
+                    }
+                )
+                
+                # 3. Create File
+                file_path = fm.create_solution_file(problem)
+                
+                # 4. Create/Get Record
+                UserProblemRecord.objects.get_or_create(
+                    user=user,
+                    problem=problem,
+                    defaults={
+                        'file_path': file_path,
+                        'next_review_date': timezone.now()
+                    }
+                )
+                results.append({'url': url, 'status': 'success', 'title': data['title']})
+                
+            except Exception as e:
+                results.append({'url': url, 'status': 'error', 'message': str(e)})
+        
+        return render(request, 'core/batch_add_problems.html', {'results': results})
+                
+    return render(request, 'core/batch_add_problems.html')
+
 def review_queue(request):
     due_records = UserProblemRecord.objects.filter(
         next_review_date__lte=timezone.now()

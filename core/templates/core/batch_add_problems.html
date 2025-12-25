@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1>Batch Add Problems</h1>
+
+{% if results %}
+<h2>Results</h2>
+<ul>
+    {% for result in results %}
+    <li>
+        <strong>{{ result.url }}</strong>:
+        {% if result.status == 'success' %}
+        <span style="color: green;">Success ({{ result.title }})</span>
+        {% else %}
+        <span style="color: red;">Error: {{ result.message }}</span>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+<hr>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label for="urls">Problem URLs (one per line or comma-separated):</label>
+    <textarea name="urls" id="urls" rows="10" required
+        placeholder="https://leetcode.com/problems/two-sum&#10;https://codeforces.com/contest/2051/problem/D"></textarea>
+    <button type="submit">Fetch & Add All</button>
+</form>
+{% endblock %}
