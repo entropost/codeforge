@@ -1,0 +1,19 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<div style="display: flex; gap: 20px;">
+    <div class="problem-card">
+        <h3>Due Today</h3>
+        <p style="font-size: 2em;">{{ due_today }}</p>
+    </div>
+    <div class="problem-card">
+        <h3>Total Problems</h3>
+        <p style="font-size: 2em;">{{ total_problems }}</p>
+    </div>
+    <div class="problem-card">
+        <h3>Total Reviews</h3>
+        <p style="font-size: 2em;">{{ total_reviews }}</p>
+    </div>
+</div>
+{% endblock %}

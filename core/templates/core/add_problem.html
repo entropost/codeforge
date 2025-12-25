@@ -2,9 +2,13 @@
 
 {% block content %}
 <h1>Add New Problem</h1>
+{% if error %}
+<div style="color: red; margin-bottom: 10px;">{{ error }}</div>
+{% endif %}
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Add Problem</button>
+    <label for="url">Problem URL (LeetCode only):</label>
+    <input type="url" name="url" id="url" required placeholder="https://leetcode.com/problems/...">
+    <button type="submit">Fetch & Add</button>
 </form>
 {% endblock %}

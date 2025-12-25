@@ -4,30 +4,58 @@ from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog
 from .forms import ProblemForm, ReviewForm
 from django.contrib.auth.models import User
+from .services import ProblemFetcher, FSRSScheduler, FileManager
 
-# Helper to get the single user (since auth isn't fully implemented yet)
+# Helper to get the single user
 def get_user():
     user, created = User.objects.get_or_create(username='user')
     return user
 
 def add_problem(request):
     if request.method == 'POST':
-        form = ProblemForm(request.POST)
-        if form.is_valid():
-            problem = form.save()
-            # Initialize UserProblemRecord
-            UserProblemRecord.objects.create(
-                user=get_user(),
-                problem=problem,
-                next_review_date=timezone.now() # Schedule immediately for first review
-            )
-            return redirect('review_queue')
-    else:
-        form = ProblemForm()
-    return render(request, 'core/add_problem.html', {'form': form})
+        url = request.POST.get('url')
+        if url:
+            try:
+                # 1. Fetch Details
+                if 'leetcode.com' in url:
+                    data = ProblemFetcher.fetch_leetcode(url)
+                else:
+                    # Fallback or error for now
+                    return render(request, 'core/add_problem.html', {'error': 'Only LeetCode URLs supported for now'})
+                
+                # 2. Create/Get Problem
+                problem, created = Problem.objects.get_or_create(
+                    source=data['source'],
+                    source_id=data['source_id'],
+                    defaults={
+                        'title': data['title'],
+                        'url': data['url'],
+                        'difficulty': data['difficulty'],
+                        'pattern_tags': data['pattern_tags']
+                    }
+                )
+                
+                # 3. Create File
+                fm = FileManager()
+                file_path = fm.create_solution_file(problem)
+                
+                # 4. Create/Get Record
+                UserProblemRecord.objects.get_or_create(
+                    user=get_user(),
+                    problem=problem,
+                    defaults={
+                        'file_path': file_path,
+                        'next_review_date': timezone.now()
+                    }
+                )
+                return redirect('review_queue')
+                
+            except Exception as e:
+                return render(request, 'core/add_problem.html', {'error': str(e)})
+                
+    return render(request, 'core/add_problem.html')
 
 def review_queue(request):
-    # Get problems due for review (or overdue)
     due_records = UserProblemRecord.objects.filter(
         next_review_date__lte=timezone.now()
     ).order_by('next_review_date')
@@ -44,20 +72,10 @@ def log_review(request, record_id):
             review.record = record
             review.save()
             
-            # Update Schedule (Fixed Interval for Phase 1)
-            rating = review.rating
-            interval = 1 # Default
-            if rating == 1: # Again
-                interval = 1
-            elif rating == 2: # Hard
-                interval = 3
-            elif rating == 3: # Good
-                interval = 7
-            elif rating == 4: # Easy
-                interval = 14
-                
-            record.last_review_date = timezone.now()
-            record.next_review_date = timezone.now() + timedelta(days=interval)
+            # Update Schedule using FSRS
+            scheduler = FSRSScheduler()
+            scheduler.schedule(record, review.rating)
+            
             record.total_reviews += 1
             record.save()
             
@@ -66,3 +84,15 @@ def log_review(request, record_id):
         form = ReviewForm()
     
     return render(request, 'core/log_review.html', {'form': form, 'record': record})
+
+def dashboard(request):
+    total_problems = UserProblemRecord.objects.count()
+    due_today = UserProblemRecord.objects.filter(next_review_date__lte=timezone.now()).count()
+    total_reviews = ReviewLog.objects.count()
+    
+    context = {
+        'total_problems': total_problems,
+        'due_today': due_today,
+        'total_reviews': total_reviews
+    }
+    return render(request, 'core/dashboard.html', context)

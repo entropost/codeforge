@@ -117,6 +117,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# CodeForge Configuration
+BASE_REPO_PATH = '/home/entropologist/code_practice'
+LEETCODE_SESSION_KEY = ''
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

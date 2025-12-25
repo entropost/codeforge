@@ -1,0 +1,4 @@
+django
+fsrs
+requests
+beautifulsoup4
