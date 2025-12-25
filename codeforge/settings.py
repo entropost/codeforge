@@ -118,7 +118,6 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 # CodeForge Configuration
-BASE_REPO_PATH = '/home/entropologist/code_practice'
 LEETCODE_SESSION_KEY = ''
 
 # Spaced Repetition Intervals (in days) for each level

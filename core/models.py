@@ -27,7 +27,6 @@ class UserProblemRecord(models.Model):
     next_review_date = models.DateTimeField(null=True, blank=True)     # The key scheduling field
     # --- Additional Tracking ---
     total_reviews = models.IntegerField(default=0)
-    file_path = models.CharField(max_length=500, blank=True)  # Path to primary solution file
     current_level = models.IntegerField(default=0)  # For level-based scheduling
     
     def reset_progress(self):
@@ -51,9 +50,6 @@ class ReviewLog(models.Model):
     rating = models.IntegerField(choices=RATING_CHOICES)  # FSRS input
     time_spent = models.DurationField(null=True, blank=True)  # Optional timing
     user_insight = models.TextField(blank=True)  # Key takeaway from the session
-    # --- Git Integration ---
-    commit_hash = models.CharField(max_length=64, blank=True)  # SHA of the associated commit
-    solution_snapshot = models.TextField(blank=True)  # Optional: final code from file
 
     def __str__(self):
         return f"Review for {self.record.problem.title} on {self.review_date.strftime('%Y-%m-%d')}"

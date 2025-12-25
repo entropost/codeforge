@@ -4,7 +4,7 @@ from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog, Course
 from .forms import ProblemForm, ReviewForm, CourseForm
 from django.contrib.auth.models import User
-from .services import ProblemFetcher, LevelScheduler, FileManager
+from .services import ProblemFetcher, LevelScheduler
 
 # Helper to get the single user
 def get_user():
@@ -37,16 +37,11 @@ def add_problem(request):
                     }
                 )
                 
-                # 3. Create File
-                fm = FileManager()
-                file_path = fm.create_solution_file(problem)
-                
-                # 4. Create/Get Record
+                # 3. Create/Get Record
                 UserProblemRecord.objects.get_or_create(
                     user=get_user(),
                     problem=problem,
                     defaults={
-                        'file_path': file_path,
                         'next_review_date': timezone.now()
                     }
                 )
@@ -74,7 +69,6 @@ def batch_add_problems(request):
         urls = [u.strip() for u in re.split(r'[\n,]', urls_raw) if u.strip()]
         
         results = []
-        fm = FileManager()
         user = get_user()
         
         course = None
@@ -104,15 +98,11 @@ def batch_add_problems(request):
                     }
                 )
                 
-                # 3. Create File
-                file_path = fm.create_solution_file(problem)
-                
-                # 4. Create/Get Record
+                # 3. Create/Get Record
                 UserProblemRecord.objects.get_or_create(
                     user=user,
                     problem=problem,
                     defaults={
-                        'file_path': file_path,
                         'next_review_date': timezone.now()
                     }
                 )
@@ -163,17 +153,6 @@ def log_review(request, record_id):
             scheduler = LevelScheduler()
             scheduler.schedule(record, review.rating)
             
-            # Git Commit
-            fm = FileManager()
-            commit_message = f"Review: {record.problem.title} (Rating: {review.get_rating_display()})"
-            try:
-                commit_hash = fm.commit_solution(record.file_path, commit_message)
-                review.commit_hash = commit_hash
-                review.save()
-            except Exception as e:
-                # Log error or handle gracefully
-                print(f"Git commit failed: {e}")
-
             record.total_reviews += 1
             record.save()
             

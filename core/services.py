@@ -5,7 +5,6 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import datetime, timedelta
 from fsrs import Scheduler, Card, Rating, State
-import git
 
 class ProblemFetcher:
     @staticmethod
@@ -122,37 +121,3 @@ class LevelScheduler:
 
         record.last_review_date = now
         return record
-
-class FileManager:
-    def __init__(self):
-        self.base_path = Path(settings.BASE_REPO_PATH)
-
-    def get_structured_path(self, problem):
-        primary_tag = problem.pattern_tags[0] if problem.pattern_tags else "Uncategorized"
-        # Sanitize tag
-        safe_tag = "".join(c if c.isalnum() else "_" for c in primary_tag)
-        difficulty_subdir = problem.difficulty.capitalize()
-        return self.base_path / safe_tag / difficulty_subdir
-
-    def create_solution_file(self, problem):
-        dir_path = self.get_structured_path(problem)
-        dir_path.mkdir(parents=True, exist_ok=True)
-        
-        filename = f"{problem.source}_{problem.source_id}.py"
-        file_path = dir_path / filename
-        
-        if not file_path.exists():
-            content = f"# {problem.title}\n# {problem.url}\n# Difficulty: {problem.difficulty}\n# Tags: {', '.join(problem.pattern_tags)}\n\nclass Solution:\n    def solve(self):\n        pass\n"
-            file_path.write_text(content)
-            
-        return str(file_path)
-
-    def commit_solution(self, file_path, message):
-        """
-        Adds and commits the solution file to the Git repository.
-        Returns the commit hash.
-        """
-        repo = git.Repo(self.base_path)
-        repo.index.add([file_path])
-        commit = repo.index.commit(message)
-        return commit.hexsha
