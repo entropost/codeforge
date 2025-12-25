@@ -121,6 +121,9 @@ STATIC_URL = "static/"
 BASE_REPO_PATH = '/home/entropologist/code_practice'
 LEETCODE_SESSION_KEY = ''
 
+# Spaced Repetition Intervals (in days) for each level
+REVIEW_INTERVALS = [1, 3, 7, 14, 30, 90, 180, 365]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

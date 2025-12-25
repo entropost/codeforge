@@ -16,7 +16,24 @@
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Review</button>
+    <div style="margin-bottom: 20px;">
+        <p><strong>How did you do?</strong></p>
+        <button type="submit" name="rating" value="1"
+            style="background: #ff4d4d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">Fail
+            (Reset)</button>
+        <button type="submit" name="rating" value="2"
+            style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Pass
+            (Next Level)</button>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="id_time_spent">Time Spent:</label><br>
+        {{ form.time_spent }}
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="id_user_insight">Insights/Notes:</label><br>
+        {{ form.user_insight }}
+    </div>
 </form>
 {% endblock %}

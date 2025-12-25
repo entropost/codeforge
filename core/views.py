@@ -4,7 +4,7 @@ from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog
 from .forms import ProblemForm, ReviewForm
 from django.contrib.auth.models import User
-from .services import ProblemFetcher, FSRSScheduler, FileManager
+from .services import ProblemFetcher, LevelScheduler, FileManager
 
 # Helper to get the single user
 def get_user():
@@ -73,8 +73,8 @@ def log_review(request, record_id):
             review.record = record
             review.save()
             
-            # Update Schedule using FSRS
-            scheduler = FSRSScheduler()
+            # Update Schedule using LevelScheduler
+            scheduler = LevelScheduler()
             scheduler.schedule(record, review.rating)
             
             # Git Commit

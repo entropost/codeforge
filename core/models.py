@@ -28,6 +28,7 @@ class UserProblemRecord(models.Model):
     # --- Additional Tracking ---
     total_reviews = models.IntegerField(default=0)
     file_path = models.CharField(max_length=500, blank=True)  # Path to primary solution file
+    current_level = models.IntegerField(default=0)  # For level-based scheduling
     
     def reset_progress(self):
         from django.utils import timezone
@@ -36,6 +37,7 @@ class UserProblemRecord(models.Model):
         self.last_review_date = None
         self.next_review_date = timezone.now()
         self.total_reviews = 0
+        self.current_level = 0
         self.save()
         self.logs.all().delete()
 
@@ -43,7 +45,7 @@ class UserProblemRecord(models.Model):
         return f"{self.user.username} - {self.problem.title}"
 
 class ReviewLog(models.Model):
-    RATING_CHOICES = [(1, 'Again'), (2, 'Hard'), (3, 'Good'), (4, 'Easy')]
+    RATING_CHOICES = [(1, 'Fail'), (2, 'Pass')]
     record = models.ForeignKey(UserProblemRecord, on_delete=models.CASCADE, related_name='logs')
     review_date = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(choices=RATING_CHOICES)  # FSRS input

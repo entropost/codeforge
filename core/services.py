@@ -98,46 +98,29 @@ class ProblemFetcher:
         except requests.RequestException as e:
             raise Exception(f"Network error while fetching from Codeforces: {e}")
 
-class FSRSScheduler:
-    def __init__(self):
-        self.scheduler = Scheduler()
-
+class LevelScheduler:
     def schedule(self, record, rating_val):
         """
-        Updates the record's FSRS state based on the rating.
-        rating_val: 1 (Again), 2 (Hard), 3 (Good), 4 (Easy)
+        Updates the record's next review date based on a binary Pass/Fail rating.
+        rating_val: 1 (Fail), 2 (Pass)
         """
-        # Map integer rating to FSRS Rating enum
-        rating_map = {
-            1: Rating.Again,
-            2: Rating.Hard,
-            3: Rating.Good,
-            4: Rating.Easy
-        }
-        rating = rating_map.get(rating_val)
-        
-        # Reconstruct Card
-        # We infer state: Learning if 0 reviews, else Review (simplification)
-        state = State.Learning if record.total_reviews == 0 else State.Review
-        
-        card = Card(
-            state=state,
-            stability=record.stability if record.total_reviews > 0 else None,
-            difficulty=record.difficulty if record.total_reviews > 0 else None,
-            last_review=record.last_review_date
-        )
-        
-        # review_card returns (Card, ReviewLog)
-        # We need to handle the case where review_card expects a timezone-aware datetime
+        from django.conf import settings
+        intervals = settings.REVIEW_INTERVALS
         now = timezone.now()
-        scheduled_card, review_log = self.scheduler.review_card(card, rating, review_datetime=now)
-        
-        # Update record
-        record.stability = scheduled_card.stability
-        record.difficulty = scheduled_card.difficulty
-        record.last_review_date = scheduled_card.last_review
-        record.next_review_date = scheduled_card.due
-        
+
+        if rating_val == 2:  # Pass
+            # Increment level, but don't exceed the number of defined intervals
+            record.current_level = min(record.current_level + 1, len(intervals))
+            
+            # Level 1 uses intervals[0], Level 2 uses intervals[1], etc.
+            # If level is 0 (shouldn't happen on pass if we increment first), default to 1 day
+            days = intervals[record.current_level - 1] if record.current_level > 0 else 1
+            record.next_review_date = now + timedelta(days=days)
+        else:  # Fail
+            record.current_level = 0
+            record.next_review_date = now + timedelta(days=1)
+
+        record.last_review_date = now
         return record
 
 class FileManager:
