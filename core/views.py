@@ -253,3 +253,12 @@ def create_course(request):
     else:
         form = CourseForm()
     return render(request, 'core/create_course.html', {'form': form})
+
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, user=get_user())
+    # Delete all problems associated with this course
+    # This will also delete UserProblemRecords due to CASCADE
+    for problem in course.problems.all():
+        problem.delete()
+    course.delete()
+    return redirect('course_list')

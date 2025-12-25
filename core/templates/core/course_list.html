@@ -10,6 +10,9 @@
         <h3><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></h3>
         <p>{{ course.description }}</p>
         <p>Problems: {{ course.problems.count }}</p>
+        <a href="{% url 'delete_course' course.id %}" class="btn btn-danger"
+            onclick="return confirm('Are you sure you want to delete this course and all its problems?')">Delete
+            Course</a>
     </div>
     {% empty %}
     <p>No courses yet. Create one to get started!</p>

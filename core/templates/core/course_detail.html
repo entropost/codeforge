@@ -6,6 +6,8 @@
 
 <div style="margin-bottom: 20px;">
     <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn">Review Course</a>
+    <a href="{% url 'delete_course' course.id %}" class="btn btn-danger"
+        onclick="return confirm('Are you sure you want to delete this course and all its problems?')">Delete Course</a>
 </div>
 
 <h3>Problems in this Course</h3>
