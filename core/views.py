@@ -124,3 +124,7 @@ def dashboard(request):
         'tag_counts': tag_counts
     }
     return render(request, 'core/dashboard.html', context)
+
+def all_problems(request):
+    all_records = UserProblemRecord.objects.select_related('problem').order_by('next_review_date')
+    return render(request, 'core/all_problems.html', {'all_records': all_records})

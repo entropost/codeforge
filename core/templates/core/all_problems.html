@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">All Tracked Problems</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Problem</th>
+                            <th>Difficulty</th>
+                            <th>Tags</th>
+                            <th>Next Review</th>
+                            <th>Total Reviews</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in all_records %}
+                        <tr>
+                            <td>
+                                <a href="{{ record.problem.url }}" target="_blank" class="text-decoration-none fw-bold">
+                                    {{ record.problem.title }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ record.problem.get_source_display }}</small>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge {% if record.problem.difficulty == 'Easy' %}bg-success{% elif record.problem.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                    {{ record.problem.difficulty }}
+                                </span>
+                            </td>
+                            <td>
+                                {% for tag in record.problem.pattern_tags %}
+                                <span class="badge bg-secondary">{{ tag }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if record.next_review_date %}
+                                {{ record.next_review_date|date:"Y-m-d H:i" }}
+                                {% if record.next_review_date <= now %} <span class="badge bg-danger">Due</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">Not scheduled</span>
+                                    {% endif %}
+                            </td>
+                            <td>{{ record.total_reviews }}</td>
+                            <td>
+                                <a href="{% url 'log_review' record.id %}" class="btn btn-sm btn-outline-primary">Log
+                                    Review</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No problems tracked yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
