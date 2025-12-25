@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1>Review: {{ record.problem.title }}</h1>
+<p><strong>Source:</strong> <a href="{{ record.problem.url }}" target="_blank">{{ record.problem.get_source_display
+        }}</a></p>
+
+<div style="background: #f9f9f9; padding: 15px; margin: 20px 0;">
+    <h3>Instructions</h3>
+    <ol>
+        <li>Open your local editor.</li>
+        <li>Solve the problem from scratch.</li>
+        <li>Come back here to log your result.</li>
+    </ol>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Review</button>
+</form>
+{% endblock %}

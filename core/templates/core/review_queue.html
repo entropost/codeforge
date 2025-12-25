@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1>Review Queue</h1>
+{% if due_records %}
+{% for record in due_records %}
+<div class="problem-card">
+    <h3>{{ record.problem.title }} <small>({{ record.problem.get_source_display }})</small></h3>
+    <p>Difficulty: {{ record.problem.difficulty }}</p>
+    <p>Next Review: {{ record.next_review_date|date:"Y-m-d H:i" }}</p>
+    <a href="{{ record.problem.url }}" target="_blank">View Problem</a>
+    <a href="{% url 'log_review' record.id %}" class="btn">Start Review</a>
+</div>
+{% endfor %}
+{% else %}
+<p>No problems due for review! Great job.</p>
+{% endif %}
+{% endblock %}
