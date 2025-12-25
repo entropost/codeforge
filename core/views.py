@@ -19,9 +19,10 @@ def add_problem(request):
                 # 1. Fetch Details
                 if 'leetcode.com' in url:
                     data = ProblemFetcher.fetch_leetcode(url)
+                elif 'codeforces.com' in url:
+                    data = ProblemFetcher.fetch_codeforces(url)
                 else:
-                    # Fallback or error for now
-                    return render(request, 'core/add_problem.html', {'error': 'Only LeetCode URLs supported for now'})
+                    return render(request, 'core/add_problem.html', {'error': 'Only LeetCode and Codeforces URLs supported'})
                 
                 # 2. Create/Get Problem
                 problem, created = Problem.objects.get_or_create(
@@ -76,6 +77,17 @@ def log_review(request, record_id):
             scheduler = FSRSScheduler()
             scheduler.schedule(record, review.rating)
             
+            # Git Commit
+            fm = FileManager()
+            commit_message = f"Review: {record.problem.title} (Rating: {review.get_rating_display()})"
+            try:
+                commit_hash = fm.commit_solution(record.file_path, commit_message)
+                review.commit_hash = commit_hash
+                review.save()
+            except Exception as e:
+                # Log error or handle gracefully
+                print(f"Git commit failed: {e}")
+
             record.total_reviews += 1
             record.save()
             
@@ -90,9 +102,25 @@ def dashboard(request):
     due_today = UserProblemRecord.objects.filter(next_review_date__lte=timezone.now()).count()
     total_reviews = ReviewLog.objects.count()
     
+    # Recent Activity
+    recent_reviews = ReviewLog.objects.select_related('record__problem').order_by('-review_date')[:5]
+    
+    # Tags Breakdown
+    from django.db.models import Count
+    # This is a bit tricky with JSONField, but we can do a simple count of primary tags
+    all_records = UserProblemRecord.objects.select_related('problem')
+    tag_counts = {}
+    for r in all_records:
+        tags = r.problem.pattern_tags
+        if tags:
+            primary = tags[0]
+            tag_counts[primary] = tag_counts.get(primary, 0) + 1
+            
     context = {
         'total_problems': total_problems,
         'due_today': due_today,
-        'total_reviews': total_reviews
+        'total_reviews': total_reviews,
+        'recent_reviews': recent_reviews,
+        'tag_counts': tag_counts
     }
     return render(request, 'core/dashboard.html', context)

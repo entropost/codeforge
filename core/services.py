@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import datetime, timedelta
 from fsrs import Scheduler, Card, Rating, State
+import git
 
 class ProblemFetcher:
     @staticmethod
@@ -49,8 +50,48 @@ class ProblemFetcher:
 
     @staticmethod
     def fetch_codeforces(url):
-        # Placeholder for Codeforces implementation
-        pass
+        """
+        Fetches problem details from Codeforces using web scraping.
+        Example URL: https://codeforces.com/problemset/problem/123/A
+        """
+        from bs4 import BeautifulSoup
+        
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch from Codeforces: {response.status_code}")
+            
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract title
+        title_tag = soup.find('div', class_='title')
+        if not title_tag:
+             raise Exception("Problem title not found. Invalid Codeforces URL?")
+        title = title_tag.text.strip()
+        
+        # Extract source_id (e.g., 123A)
+        parts = url.rstrip('/').split('/')
+        source_id = f"{parts[-2]}{parts[-1]}"
+        
+        # Extract tags
+        tag_box = soup.find_all('span', class_='tag-box')
+        pattern_tags = [tag.text.strip() for tag in tag_box]
+        
+        # Codeforces doesn't have a simple "Difficulty" string like LeetCode in the HTML,
+        # but often uses ratings. For simplicity, we'll default to "Medium" or try to find a rating.
+        difficulty = "Medium"
+        for tag in tag_box:
+            if '*' in tag.text:
+                difficulty = tag.text.strip().replace('*', '')
+                break
+
+        return {
+            'source': 'CF',
+            'source_id': source_id,
+            'title': title,
+            'url': url,
+            'difficulty': difficulty,
+            'pattern_tags': pattern_tags
+        }
 
 class FSRSScheduler:
     def __init__(self):
@@ -117,3 +158,13 @@ class FileManager:
             file_path.write_text(content)
             
         return str(file_path)
+
+    def commit_solution(self, file_path, message):
+        """
+        Adds and commits the solution file to the Git repository.
+        Returns the commit hash.
+        """
+        repo = git.Repo(self.base_path)
+        repo.index.add([file_path])
+        commit = repo.index.commit(message)
+        return commit.hexsha
