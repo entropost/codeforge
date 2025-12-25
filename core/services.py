@@ -51,47 +51,52 @@ class ProblemFetcher:
     @staticmethod
     def fetch_codeforces(url):
         """
-        Fetches problem details from Codeforces using web scraping.
-        Example URL: https://codeforces.com/problemset/problem/123/A
+        Fetches problem details from Codeforces using the official API.
+        Handles both /problemset/problem/ and /contest/X/problem/Y formats.
         """
-        from bs4 import BeautifulSoup
-        
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch from Codeforces: {response.status_code}")
-            
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Extract title
-        title_tag = soup.find('div', class_='title')
-        if not title_tag:
-             raise Exception("Problem title not found. Invalid Codeforces URL?")
-        title = title_tag.text.strip()
-        
-        # Extract source_id (e.g., 123A)
+        # Extract contestId and index
         parts = url.rstrip('/').split('/')
-        source_id = f"{parts[-2]}{parts[-1]}"
-        
-        # Extract tags
-        tag_box = soup.find_all('span', class_='tag-box')
-        pattern_tags = [tag.text.strip() for tag in tag_box]
-        
-        # Codeforces doesn't have a simple "Difficulty" string like LeetCode in the HTML,
-        # but often uses ratings. For simplicity, we'll default to "Medium" or try to find a rating.
-        difficulty = "Medium"
-        for tag in tag_box:
-            if '*' in tag.text:
-                difficulty = tag.text.strip().replace('*', '')
-                break
+        if 'problemset/problem' in url:
+            # https://codeforces.com/problemset/problem/2051/D
+            contest_id = parts[-2]
+            index = parts[-1]
+        elif 'contest' in url and 'problem' in url:
+            # https://codeforces.com/contest/2051/problem/D
+            contest_id = parts[-3]
+            index = parts[-1]
+        else:
+            raise Exception("Unsupported Codeforces URL format. Use /problemset/problem/X/Y or /contest/X/problem/Y")
 
-        return {
-            'source': 'CF',
-            'source_id': source_id,
-            'title': title,
-            'url': url,
-            'difficulty': difficulty,
-            'pattern_tags': pattern_tags
-        }
+        api_url = "https://codeforces.com/api/problemset.problems"
+        try:
+            response = requests.get(api_url, timeout=10)
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch from Codeforces API: {response.status_code}")
+                
+            data = response.json()
+            if data['status'] != 'OK':
+                raise Exception(f"Codeforces API error: {data.get('comment')}")
+                
+            problems = data['result']['problems']
+            target_problem = None
+            for p in problems:
+                if str(p.get('contestId')) == str(contest_id) and p.get('index') == index:
+                    target_problem = p
+                    break
+            
+            if not target_problem:
+                raise Exception(f"Problem {contest_id}{index} not found in Codeforces API")
+                
+            return {
+                'source': 'CF',
+                'source_id': f"{contest_id}{index}",
+                'title': target_problem['name'],
+                'url': url,
+                'difficulty': str(target_problem.get('rating', 'Medium')),
+                'pattern_tags': target_problem.get('tags', [])
+            }
+        except requests.RequestException as e:
+            raise Exception(f"Network error while fetching from Codeforces: {e}")
 
 class FSRSScheduler:
     def __init__(self):
