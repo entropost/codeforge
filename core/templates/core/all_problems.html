@@ -54,6 +54,8 @@
                                     Review</a>
                                 <a href="{% url 'reset_progress' record.id %}" class="btn btn-sm btn-outline-danger"
                                     onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
+                                <a href="{% url 'delete_problem' record.id %}" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete this problem? This action cannot be undone.');">Delete</a>
                             </td>
                         </tr>
                         {% empty %}

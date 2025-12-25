@@ -133,3 +133,8 @@ def reset_problem_progress(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id)
     record.reset_progress()
     return redirect(request.META.get('HTTP_REFERER', 'all_problems'))
+
+def delete_problem(request, record_id):
+    record = get_object_or_404(UserProblemRecord, id=record_id)
+    record.delete()
+    return redirect('all_problems')
