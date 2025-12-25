@@ -12,11 +12,19 @@
 {% if due_records %}
 {% for record in due_records %}
 <div class="problem-card">
-    <h3>{{ record.problem.title }} <small>({{ record.problem.get_source_display }})</small></h3>
-    <p>Difficulty: {{ record.problem.difficulty }}</p>
-    <p>Next Review: {{ record.next_review_date|date:"Y-m-d H:i" }}</p>
-    <a href="{{ record.problem.url }}" target="_blank">View Problem</a>
-    <a href="{% url 'log_review' record.id %}" class="btn">Start Review</a>
+    <h4>{{ record.problem.title }}</h4>
+    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }}</p>
+    {% with courses=record.problem.courses.all %}
+    {% if courses %}
+    <p>Courses:
+        {% for course in courses %}
+        <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+    {% endif %}
+    {% endwith %}
+    <p>Next Review: {{ record.next_review_date|date:"Y-m-d" }}</p>
+    <a href="{% url 'log_review' record.id %}" class="btn">Review Now</a>
     <a href="{% url 'reset_progress' record.id %}" class="btn btn-danger"
         onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
 </div>

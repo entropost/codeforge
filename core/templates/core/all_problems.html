@@ -27,6 +27,15 @@
                                 </a>
                                 <br>
                                 <small class="text-muted">{{ record.problem.get_source_display }}</small>
+                                {% with courses=record.problem.courses.all %}
+                                {% if courses %}
+
+                                {% for course in courses %}
+                                <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
+                                {% endfor %}
+
+                                {% endif %}
+                                {% endwith %}
                             </td>
                             <td>
                                 <span

@@ -221,7 +221,13 @@ def reset_problem_progress(request, record_id):
     return redirect(request.META.get('HTTP_REFERER', 'all_problems'))
 
 def delete_problem(request, record_id):
-    record = get_object_or_404(UserProblemRecord, id=record_id)
+    record = get_object_or_404(UserProblemRecord, id=record_id, user=get_user())
+    problem = record.problem
+    # Remove problem from all courses of this user
+    user_courses = Course.objects.filter(user=get_user(), problems=problem)
+    for course in user_courses:
+        course.problems.remove(problem)
+    
     record.delete()
     return redirect('all_problems')
 
