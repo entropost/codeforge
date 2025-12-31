@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Import Problems to {{ target_course.name }}</h2>
+<p>Select a course to import problems from. This will add all problems from the source course to this course with fresh progress tracking.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="source_course">Source Course:</label>
+    <select name="source_course" id="source_course" required>
+        <option value="" disabled selected>Select a course</option>
+        {% for course in other_courses %}
+            <option value="{{ course.id }}">{{ course.name }} ({{ course.problems.count }} problems)</option>
+        {% endfor %}
+    </select>
+    
+    <button type="submit">Import Problems</button>
+</form>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'course_detail' target_course.id %}">Back to Course</a>
+</div>
+{% endblock %}

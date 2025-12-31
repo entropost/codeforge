@@ -245,3 +245,35 @@ def delete_course(request, course_id):
         problem.delete()
     course.delete()
     return redirect('course_list')
+
+def import_problems(request, course_id):
+    target_course = get_object_or_404(Course, id=course_id, user=get_user())
+    
+    if request.method == 'POST':
+        source_course_id = request.POST.get('source_course')
+        if source_course_id:
+            source_course = get_object_or_404(Course, id=source_course_id, user=get_user())
+            problems = source_course.problems.all()
+            
+            user = get_user()
+            for problem in problems:
+                # Add problem to target course
+                target_course.problems.add(problem)
+                
+                # Create/Get UserProblemRecord for target course
+                UserProblemRecord.objects.get_or_create(
+                    user=user,
+                    problem=problem,
+                    course=target_course,
+                    defaults={
+                        'next_review_date': timezone.now()
+                    }
+                )
+            
+            return redirect('course_detail', course_id=target_course.id)
+            
+    other_courses = Course.objects.filter(user=get_user()).exclude(id=target_course.id)
+    return render(request, 'core/import_problems.html', {
+        'target_course': target_course,
+        'other_courses': other_courses
+    })
