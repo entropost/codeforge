@@ -134,8 +134,9 @@ def review_queue(request):
     
     due_records = UserProblemRecord.objects.filter(
         user=user,
-        next_review_date__lte=timezone.now()
-    )
+        next_review_date__lte=timezone.now(),
+        is_paused=False
+    ).exclude(course__is_paused=True)
 
     if course_id:
         course = get_object_or_404(Course, id=course_id, user=user)
@@ -169,8 +170,11 @@ def log_review(request, record_id):
     return render(request, 'core/log_review.html', {'form': form, 'record': record})
 
 def dashboard(request):
-    total_problems = UserProblemRecord.objects.count()
-    due_today = UserProblemRecord.objects.filter(next_review_date__lte=timezone.now()).count()
+    total_problems = UserProblemRecord.objects.filter(is_paused=False).exclude(course__is_paused=True).count()
+    due_today = UserProblemRecord.objects.filter(
+        next_review_date__lte=timezone.now(),
+        is_paused=False
+    ).exclude(course__is_paused=True).count()
     total_reviews = ReviewLog.objects.count()
     
     # Recent Activity
@@ -276,3 +280,15 @@ def import_problems(request, course_id):
         'target_course': target_course,
         'other_courses': other_courses
     })
+
+def toggle_problem_pause(request, record_id):
+    record = get_object_or_404(UserProblemRecord, id=record_id, user=get_user())
+    record.is_paused = not record.is_paused
+    record.save()
+    return redirect(request.META.get('HTTP_REFERER', 'all_problems'))
+
+def toggle_course_pause(request, course_id):
+    course = get_object_or_404(Course, id=course_id, user=get_user())
+    course.is_paused = not course.is_paused
+    course.save()
+    return redirect(request.META.get('HTTP_REFERER', 'course_list'))

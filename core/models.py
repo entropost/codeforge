@@ -30,6 +30,7 @@ class UserProblemRecord(models.Model):
     current_level = models.IntegerField(default=0)  # For level-based scheduling
     
     course = models.ForeignKey('Course', on_delete=models.CASCADE, null=True, blank=True)
+    is_paused = models.BooleanField(default=False)
     
     class Meta:
         unique_together = ('user', 'problem', 'course')
@@ -65,6 +66,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     problems = models.ManyToManyField(Problem, related_name='courses')
+    is_paused = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

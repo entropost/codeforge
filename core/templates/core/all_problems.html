@@ -33,6 +33,12 @@
                                 {% else %}
                                 <span class="text-muted">General</span>
                                 {% endif %}
+                                {% if record.is_paused %}
+                                <span class="badge bg-warning text-dark">Paused</span>
+                                {% endif %}
+                                {% if record.course.is_paused %}
+                                <span class="badge bg-secondary">Course Paused</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <span
@@ -61,6 +67,10 @@
                             <td>
                                 <a href="{% url 'log_review' record.id %}" class="btn btn-sm btn-outline-primary">Log
                                     Review</a>
+                                <a href="{% url 'toggle_problem_pause' record.id %}"
+                                    class="btn btn-sm btn-outline-warning">
+                                    {% if record.is_paused %}Unpause{% else %}Pause{% endif %}
+                                </a>
                                 <a href="{% url 'reset_progress' record.id %}" class="btn btn-sm btn-outline-danger"
                                     onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
                                 <a href="{% url 'delete_problem' record.id %}" class="btn btn-sm btn-danger"

@@ -8,8 +8,14 @@
     {% for course in courses %}
     <div class="problem-card">
         <h3><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></h3>
+        {% if course.is_paused %}
+        <span style="background: #ffc107; padding: 2px 5px; border-radius: 3px; font-size: 0.8em;">Paused</span>
+        {% endif %}
         <p>{{ course.description }}</p>
         <p>Problems: {{ course.problems.count }}</p>
+        <a href="{% url 'toggle_course_pause' course.id %}" class="btn">
+            {% if course.is_paused %}Unpause{% else %}Pause{% endif %} Course
+        </a>
         <a href="{% url 'delete_course' course.id %}" class="btn btn-danger"
             onclick="return confirm('Are you sure you want to delete this course and all its problems?')">Delete
             Course</a>
