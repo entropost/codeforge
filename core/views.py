@@ -239,10 +239,9 @@ def create_course(request):
 
 def delete_course(request, course_id):
     course = get_object_or_404(Course, id=course_id, user=get_user())
-    # Delete all problems associated with this course
-    # This will also delete UserProblemRecords due to CASCADE
-    for problem in course.problems.all():
-        problem.delete()
+    # Deleting the course will automatically delete associated UserProblemRecords
+    # due to the CASCADE on the UserProblemRecord.course field.
+    # It also cleans up the ManyToMany relationship with Problem.
     course.delete()
     return redirect('course_list')
 
