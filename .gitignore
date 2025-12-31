@@ -27,4 +27,4 @@ venv.bak/
 Thumbs.db
 
 # Project specific
-verify_phase1.py
+verify_phase*.py
