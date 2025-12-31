@@ -28,15 +28,11 @@
                                 </a>
                                 <br>
                                 <small class="text-muted">{{ record.problem.get_source_display }}</small>
-                                {% with courses=record.problem.courses.all %}
-                                {% if courses %}
-
-                                {% for course in courses %}
-                                <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
-                                {% endfor %}
-
+                                {% if record.course %}
+                                <a href="{% url 'course_detail' record.course.id %}">{{ record.course.name }}</a>
+                                {% else %}
+                                <span class="text-muted">General</span>
                                 {% endif %}
-                                {% endwith %}
                             </td>
                             <td>
                                 <span

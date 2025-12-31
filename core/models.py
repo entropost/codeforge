@@ -29,6 +29,11 @@ class UserProblemRecord(models.Model):
     total_reviews = models.IntegerField(default=0)
     current_level = models.IntegerField(default=0)  # For level-based scheduling
     
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('user', 'problem', 'course')
+
     def reset_progress(self):
         from django.utils import timezone
         self.difficulty = 0.0
@@ -41,7 +46,8 @@ class UserProblemRecord(models.Model):
         self.logs.all().delete()
 
     def __str__(self):
-        return f"{self.user.username} - {self.problem.title}"
+        course_name = self.course.name if self.course else "General"
+        return f"{self.user.username} - {self.problem.title} ({course_name})"
 
 class ReviewLog(models.Model):
     RATING_CHOICES = [(1, 'Fail'), (2, 'Pass')]

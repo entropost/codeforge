@@ -38,18 +38,22 @@ def add_problem(request):
                 )
                 
                 # 3. Create/Get Record
+                target_course = None
+                if course_id:
+                    target_course = get_object_or_404(Course, id=course_id, user=get_user())
+
                 UserProblemRecord.objects.get_or_create(
                     user=get_user(),
                     problem=problem,
+                    course=target_course,
                     defaults={
                         'next_review_date': timezone.now()
                     }
                 )
 
                 # 5. Add to Course if provided
-                if course_id:
-                    course = get_object_or_404(Course, id=course_id, user=get_user())
-                    course.problems.add(problem)
+                if target_course:
+                    target_course.problems.add(problem)
 
                 return redirect('review_queue')
                 
@@ -99,9 +103,11 @@ def batch_add_problems(request):
                 )
                 
                 # 3. Create/Get Record
+                # 3. Create/Get Record
                 UserProblemRecord.objects.get_or_create(
                     user=user,
                     problem=problem,
+                    course=course,
                     defaults={
                         'next_review_date': timezone.now()
                     }
@@ -133,7 +139,7 @@ def review_queue(request):
 
     if course_id:
         course = get_object_or_404(Course, id=course_id, user=user)
-        due_records = due_records.filter(problem__in=course.problems.all())
+        due_records = due_records.filter(course=course)
     
     due_records = due_records.order_by('next_review_date')
     
@@ -201,11 +207,9 @@ def reset_problem_progress(request, record_id):
 
 def delete_problem(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id, user=get_user())
-    problem = record.problem
-    # Remove problem from all courses of this user
-    user_courses = Course.objects.filter(user=get_user(), problems=problem)
-    for course in user_courses:
-        course.problems.remove(problem)
+    
+    if record.course:
+        record.course.problems.remove(record.problem)
     
     record.delete()
     return redirect('all_problems')
@@ -218,7 +222,7 @@ def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id, user=get_user())
     problems = course.problems.all()
     # Get UserProblemRecords for these problems
-    records = UserProblemRecord.objects.filter(user=get_user(), problem__in=problems)
+    records = UserProblemRecord.objects.filter(user=get_user(), course=course)
     return render(request, 'core/course_detail.html', {'course': course, 'records': records})
 
 def create_course(request):

@@ -13,16 +13,13 @@
 {% for record in due_records %}
 <div class="problem-card">
     <h4>{{ record.problem.title }}</h4>
-    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{ record.current_level }}</p>
-    {% with courses=record.problem.courses.all %}
-    {% if courses %}
-    <p>Courses:
-        {% for course in courses %}
-        <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-    </p>
+    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{
+        record.current_level }}</p>
+    {% if record.course %}
+    <p>Course: <a href="{% url 'course_detail' record.course.id %}">{{ record.course.name }}</a></p>
+    {% else %}
+    <p>Course: General</p>
     {% endif %}
-    {% endwith %}
     <p>Next Review: {{ record.next_review_date|date:"Y-m-d" }}</p>
     <a href="{% url 'log_review' record.id %}" class="btn">Review Now</a>
     <a href="{% url 'reset_progress' record.id %}" class="btn btn-danger"
