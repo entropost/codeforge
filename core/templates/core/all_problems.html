@@ -12,6 +12,7 @@
                         <tr>
                             <th>Problem</th>
                             <th>Difficulty</th>
+                            <th>Level</th>
                             <th>Tags</th>
                             <th>Next Review</th>
                             <th>Total Reviews</th>
@@ -42,6 +43,9 @@
                                     class="badge {% if record.problem.difficulty == 'Easy' %}bg-success{% elif record.problem.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
                                     {{ record.problem.difficulty }}
                                 </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark">{{ record.current_level }}</span>
                             </td>
                             <td>
                                 {% for tag in record.problem.pattern_tags %}
