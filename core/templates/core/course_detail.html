@@ -14,8 +14,7 @@
 {% for record in records %}
 <div class="problem-card">
     <h4>{{ record.problem.title }}</h4>
-    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{
-        record.current_level }}</p>
+    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{ record.current_level }}</p>
     <p>Next Review: {{ record.next_review_date|date:"Y-m-d" }}</p>
     <a href="{% url 'log_review' record.id %}" class="btn">Review Now</a>
 </div>

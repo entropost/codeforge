@@ -13,8 +13,7 @@
 {% for record in due_records %}
 <div class="problem-card">
     <h4>{{ record.problem.title }}</h4>
-    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{
-        record.current_level }}</p>
+    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level: {{ record.current_level }}</p>
     {% with courses=record.problem.courses.all %}
     {% if courses %}
     <p>Courses:
