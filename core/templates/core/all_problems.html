@@ -30,6 +30,7 @@
                                 <small class="text-muted">{{ record.problem.get_source_display }}</small>
                                 {% if record.course %}
                                 <a href="{% url 'course_detail' record.course.id %}">{{ record.course.name }}</a>
+                                <small class="text-muted">({{ record.course.get_language_display }})</small>
                                 {% else %}
                                 <span class="text-muted">General</span>
                                 {% endif %}

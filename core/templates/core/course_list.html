@@ -12,6 +12,7 @@
         <span style="background: #ffc107; padding: 2px 5px; border-radius: 3px; font-size: 0.8em;">Paused</span>
         {% endif %}
         <p>{{ course.description }}</p>
+        <p>Language: {{ course.get_language_display }}</p>
         <p>Problems: {{ course.problems.count }}</p>
         <a href="{% url 'edit_course' course.id %}" class="btn">Edit</a>
         <a href="{% url 'toggle_course_pause' course.id %}" class="btn">

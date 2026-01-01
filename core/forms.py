@@ -14,4 +14,4 @@ class ReviewForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'language']

@@ -106,9 +106,21 @@ class CourseTrackingTest(TestCase):
     def test_rename_course(self):
         response = self.client.post(reverse('edit_course', args=[self.course1.id]), {
             'name': 'Updated Course Name',
-            'description': 'Updated Description'
+            'description': 'Updated Description',
+            'language': 'cpp'
         })
         self.assertEqual(response.status_code, 302)
         self.course1.refresh_from_db()
         self.assertEqual(self.course1.name, 'Updated Course Name')
         self.assertEqual(self.course1.description, 'Updated Description')
+        self.assertEqual(self.course1.language, 'cpp')
+
+    def test_create_course(self):
+        response = self.client.post(reverse('create_course'), {
+            'name': 'New Course',
+            'description': 'New Description',
+            'language': 'cpp'
+        })
+        self.assertEqual(response.status_code, 302)
+        course = Course.objects.get(name='New Course')
+        self.assertEqual(course.language, 'cpp')

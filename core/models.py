@@ -62,10 +62,15 @@ class ReviewLog(models.Model):
         return f"Review for {self.record.problem.title} on {self.review_date.strftime('%Y-%m-%d')}"
 
 class Course(models.Model):
+    LANGUAGE_CHOICES = [
+        ('python', 'Python'),
+        ('cpp', 'C++'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     problems = models.ManyToManyField(Problem, related_name='courses')
+    language = models.CharField(max_length=20, choices=LANGUAGE_CHOICES, default='python')
     is_paused = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

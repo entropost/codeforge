@@ -6,6 +6,7 @@
 <span class="badge bg-warning text-dark">Paused</span>
 {% endif %}
 <p>{{ course.description }}</p>
+<p><strong>Language:</strong> {{ course.get_language_display }}</p>
 
 <div style="margin-bottom: 20px;">
     <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn">Review Course</a>
