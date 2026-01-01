@@ -169,3 +169,45 @@ class PracticeFileManager:
         except Exception as e:
             print(f"Error creating practice file: {e}")
             return None
+
+class GitManager:
+    @staticmethod
+    def commit_review(file_path, status, course_name, problem_title, level):
+        """
+        Adds and commits the practice file to git.
+        """
+        if not file_path or not os.path.exists(file_path):
+            return
+        
+        import subprocess
+        try:
+            # Get the directory of the file to run git commands in
+            file_dir = os.path.dirname(file_path)
+            
+            # Check if there are changes to the file
+            # git status --porcelain <file_path> returns empty if no changes
+            status_proc = subprocess.run(
+                ['git', 'status', '--porcelain', file_path], 
+                cwd=file_dir, 
+                capture_output=True, 
+                text=True
+            )
+            
+            # If no changes and file is already tracked, status_proc.stdout will be empty.
+            # However, we might want to commit anyway if it's a new file (untracked).
+            # Untracked files show up as ?? in porcelain.
+            
+            if not status_proc.stdout.strip():
+                # No changes to commit
+                return
+
+            # git add
+            subprocess.run(['git', 'add', file_path], cwd=file_dir, check=True)
+            
+            # git commit - only this file
+            message = f"{status} | Course: {course_name} | Problem: {problem_title} | Level: {level}"
+            subprocess.run(['git', 'commit', '-m', message, file_path], cwd=file_dir, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Git error: {e}")
+        except Exception as e:
+            print(f"Unexpected error during git commit: {e}")

@@ -4,7 +4,7 @@ from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog, Course
 from .forms import ProblemForm, ReviewForm, CourseForm
 from django.contrib.auth.models import User
-from .services import ProblemFetcher, LevelScheduler, PracticeFileManager
+from .services import ProblemFetcher, LevelScheduler, PracticeFileManager, GitManager
 
 # Helper to get the single user
 def get_user():
@@ -154,6 +154,14 @@ def log_review(request, record_id):
         if form.is_valid():
             review = form.save(commit=False)
             review.record = record
+            
+            # Capture info for git commit BEFORE updating level
+            status = "Pass" if review.rating == 2 else "Fail"
+            course_name = record.course.name if record.course else "General"
+            problem_title = record.problem.title
+            level = record.current_level
+            file_path = PracticeFileManager.create_practice_file(record)
+            
             review.save()
             
             # Update Schedule using LevelScheduler
@@ -162,6 +170,9 @@ def log_review(request, record_id):
             
             record.total_reviews += 1
             record.save()
+            
+            # Commit to git
+            GitManager.commit_review(file_path, status, course_name, problem_title, level)
             
             return redirect('review_queue')
     else:
