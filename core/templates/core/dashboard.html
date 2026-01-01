@@ -1,20 +1,86 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<h1>Dashboard</h1>
+<style>
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
 
-<div style="display: flex; gap: 20px; margin-bottom: 30px;">
-    <div class="problem-card" style="flex: 1; text-align: center;">
-        <h3>Total Problems</h3>
-        <p style="font-size: 2em; margin: 0;">{{ total_problems }}</p>
+    .status-pass {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-fail {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+<h1 style="margin-bottom: 30px;">Dashboard</h1>
+
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    <div class="problem-card" style="text-align: center; padding: 30px;">
+        <h3
+            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+            Total Problems</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: #007bff;">{{ total_problems }}</p>
     </div>
-    <div class="problem-card" style="flex: 1; text-align: center;">
-        <h3>Due Today</h3>
-        <p style="font-size: 2em; margin: 0; color: #dc3545;">{{ due_today }}</p>
+    <div class="problem-card" style="text-align: center; padding: 30px;">
+        <h3
+            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+            Due Today</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: #dc3545;">{{ due_today }}</p>
     </div>
-    <div class="problem-card" style="flex: 1; text-align: center;">
-        <h3>Total Reviews</h3>
-        <p style="font-size: 2em;">{{ total_reviews }}</p>
+    <div class="problem-card" style="text-align: center; padding: 30px;">
+        <h3
+            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+            Total Reviews</h3>
+        <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: #28a745;">{{ total_reviews }}</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <div class="problem-card">
+        <h3 style="margin-bottom: 20px;">Recent Activity</h3>
+        {% if recent_reviews %}
+        <ul style="list-style: none; padding: 0;">
+            {% for review in recent_reviews %}
+            <li
+                style="padding: 12px 0; border-bottom: 1px solid #f1f3f5; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600;">{{ review.record.problem.title }}</div>
+                    <div style="font-size: 0.8rem; color: #adb5bd;">{{ review.review_date|date:"M d, Y" }}</div>
+                </div>
+                <span class="status-badge {% if review.rating == 2 %}status-pass{% else %}status-fail{% endif %}">
+                    {{ review.get_rating_display }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: #adb5bd; text-align: center; padding: 20px;">No recent activity.</p>
+        {% endif %}
+    </div>
+
+    <div class="problem-card">
+        <h3 style="margin-bottom: 20px;">Top Tags</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            {% for tag, count in tag_counts.items %}
+            <div
+                style="background: #f8f9fa; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef;">
+                <span style="font-weight: 600; color: #495057;">{{ tag }}</span>
+                <span
+                    style="background: #007bff; color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem;">{{
+                    count }}</span>
+            </div>
+            {% empty %}
+            <p style="color: #adb5bd; text-align: center; width: 100%; padding: 20px;">No tags found.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

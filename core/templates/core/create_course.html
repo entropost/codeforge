@@ -2,9 +2,23 @@
 
 {% block content %}
 <h2>Create New Course</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create Course</button>
-</form>
+<div class="problem-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="form-group">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+        <div class="form-group">
+            {{ form.language.label_tag }}
+            {{ form.language }}
+        </div>
+        <button type="submit" class="btn">Create Course</button>
+        <a href="{% url 'course_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

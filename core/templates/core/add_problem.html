@@ -3,21 +3,28 @@
 {% block content %}
 <h1>Add New Problem</h1>
 {% if error %}
-<div style="color: red; margin-bottom: 10px;">{{ error }}</div>
+<div style="color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 8px; margin-bottom: 20px;">{{ error }}
+</div>
 {% endif %}
-<form method="post">
-    {% csrf_token %}
-    <label for="url">Problem URL (LeetCode or Codeforces):</label>
-    <input type="url" name="url" id="url" required placeholder="https://leetcode.com/problems/two-sum/">
+<div class="problem-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="url">Problem URL (LeetCode or Codeforces):</label>
+            <input type="url" name="url" id="url" required placeholder="https://leetcode.com/problems/two-sum/">
+        </div>
 
-    <label for="course">Add to Course (Optional):</label>
-    <select name="course" id="course">
-        <option value="">-- No Course --</option>
-        {% for course in courses %}
-        <option value="{{ course.id }}">{{ course.name }}</option>
-        {% endfor %}
-    </select>
+        <div class="form-group">
+            <label for="course">Add to Course (Optional):</label>
+            <select name="course" id="course">
+                <option value="">-- No Course --</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <button type="submit">Add Problem</button>
-</form>
+        <button type="submit" class="btn">Add Problem</button>
+    </form>
+</div>
 {% endblock %}

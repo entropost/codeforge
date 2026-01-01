@@ -4,7 +4,7 @@ from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog, Course
 from .forms import ProblemForm, ReviewForm, CourseForm
 from django.contrib.auth.models import User
-from .services import ProblemFetcher, LevelScheduler
+from .services import ProblemFetcher, LevelScheduler, PracticeFileManager
 
 # Helper to get the single user
 def get_user():
@@ -166,6 +166,8 @@ def log_review(request, record_id):
             return redirect('review_queue')
     else:
         form = ReviewForm()
+        # Trigger practice file creation when review starts
+        PracticeFileManager.create_practice_file(record)
     
     return render(request, 'core/log_review.html', {'form': form, 'record': record})
 

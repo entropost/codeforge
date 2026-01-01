@@ -1,40 +1,68 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<h2>Course: {{ course.name }}</h2>
-{% if course.is_paused %}
-<span class="badge bg-warning text-dark">Paused</span>
-{% endif %}
-<p>{{ course.description }}</p>
-<p><strong>Language:</strong> {{ course.get_language_display }}</p>
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+    <div>
+        <h2 style="margin-bottom: 10px;">{{ course.name }}</h2>
+        {% if course.is_paused %}
+        <span
+            style="background: #ffc107; color: #856404; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 15px;">Paused</span>
+        {% endif %}
+        <p style="color: #6c757d; font-size: 1.1rem; margin-bottom: 10px;">{{ course.description }}</p>
+        <p><strong>Language:</strong> <span class="btn btn-secondary"
+                style="padding: 4px 10px; font-size: 0.85rem; cursor: default;">{{ course.get_language_display }}</span>
+        </p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn" style="text-align: center;">Review
+            Queue</a>
+        <a href="{% url 'import_problems' course.id %}" class="btn btn-secondary" style="text-align: center;">Import
+            Problems</a>
+    </div>
+</div>
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn">Review Course</a>
-    <a href="{% url 'import_problems' course.id %}" class="btn">Import Problems</a>
-    <a href="{% url 'edit_course' course.id %}" class="btn">Edit Course</a>
-    <a href="{% url 'toggle_course_pause' course.id %}" class="btn btn-warning">
+<div
+    style="margin-bottom: 40px; display: flex; gap: 10px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid #dee2e6;">
+    <a href="{% url 'edit_course' course.id %}" class="btn btn-secondary">Edit Course</a>
+    <a href="{% url 'toggle_course_pause' course.id %}" class="btn btn-secondary">
         {% if course.is_paused %}Unpause{% else %}Pause{% endif %} Course
     </a>
     <a href="{% url 'delete_course' course.id %}" class="btn btn-danger"
         onclick="return confirm('Are you sure you want to delete this course and all its problems?')">Delete Course</a>
 </div>
 
-<h3>Problems in this Course</h3>
-{% for record in records %}
-<div class="problem-card">
-    <h4>{{ record.problem.title }}</h4>
-    <p>Source: {{ record.problem.get_source_display }} | Difficulty: {{ record.problem.difficulty }} | Level:
-        {{ record.current_level }}</p>
-    <p>Next Review: {{ record.next_review_date|date:"Y-m-d" }}</p>
-    {% if record.is_paused %}
-    <span class="badge bg-warning text-dark">Paused</span>
-    {% endif %}
-    <a href="{% url 'log_review' record.id %}" class="btn">Review Now</a>
-    <a href="{% url 'toggle_problem_pause' record.id %}" class="btn btn-warning">
-        {% if record.is_paused %}Unpause{% else %}Pause{% endif %}
-    </a>
+<h3 style="margin-bottom: 20px;">Problems in this Course</h3>
+<div style="display: grid; gap: 15px;">
+    {% for record in records %}
+    <div class="problem-card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
+            <div style="font-size: 0.85rem; color: #6c757d; display: flex; gap: 15px;">
+                <span><strong>Source:</strong> {{ record.problem.get_source_display }}</span>
+                <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
+                <span><strong>Level:</strong> {{ record.current_level }}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                <strong>Next Review:</strong> {{ record.next_review_date|date:"Y-m-d" }}
+            </div>
+            {% if record.is_paused %}
+            <span
+                style="background: #ffc107; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-top: 8px; display: inline-block;">Paused</span>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'log_review' record.id %}" class="btn" style="padding: 8px 16px; font-size: 0.9rem;">Review
+                Now</a>
+            <a href="{% url 'toggle_problem_pause' record.id %}" class="btn btn-secondary"
+                style="padding: 8px 16px; font-size: 0.9rem;">
+                {% if record.is_paused %}Unpause{% else %}Pause{% endif %}
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="problem-card" style="text-align: center; padding: 40px; color: #6c757d;">
+        No problems in this course yet.
+    </div>
+    {% endfor %}
 </div>
-{% empty %}
-<p>No problems in this course yet.</p>
-{% endfor %}
 {% endblock %}

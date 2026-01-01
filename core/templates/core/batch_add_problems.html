@@ -1,39 +1,63 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
+<style>
+    .result-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    .result-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .result-error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
 <h1>Batch Add Problems</h1>
 
 {% if results %}
-<h2>Results</h2>
-<ul>
-    {% for result in results %}
-    <li>
-        <strong>{{ result.url }}</strong>:
-        {% if result.status == 'success' %}
-        <span style="color: green;">Success ({{ result.title }})</span>
-        {% else %}
-        <span style="color: red;">Error: {{ result.message }}</span>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
-<hr>
+<div class="problem-card">
+    <h2>Results</h2>
+    <ul style="list-style: none; padding: 0;">
+        {% for result in results %}
+        <li class="result-item {% if result.status == 'success' %}result-success{% else %}result-error{% endif %}">
+            <strong>{{ result.url }}</strong>:
+            {% if result.status == 'success' %}
+            Success ({{ result.title }})
+            {% else %}
+            Error: {{ result.message }}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endif %}
 
-<form method="post">
-    {% csrf_token %}
-    <label for="urls">Problem URLs (one per line or comma-separated):</label>
-    <textarea name="urls" id="urls" rows="10" required
-        placeholder="https://leetcode.com/problems/two-sum/&#10;https://leetcode.com/problems/add-two-numbers/"></textarea>
+<div class="problem-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="urls">Problem URLs (one per line or comma-separated):</label>
+            <textarea name="urls" id="urls" rows="10" required
+                placeholder="https://leetcode.com/problems/two-sum/&#10;https://leetcode.com/problems/add-two-numbers/"></textarea>
+        </div>
 
-    <label for="course">Add to Course (Optional):</label>
-    <select name="course" id="course">
-        <option value="">-- No Course --</option>
-        {% for course in courses %}
-        <option value="{{ course.id }}">{{ course.name }}</option>
-        {% endfor %}
-    </select>
+        <div class="form-group">
+            <label for="course">Add to Course (Optional):</label>
+            <select name="course" id="course">
+                <option value="">-- No Course --</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <button type="submit">Batch Add Problems</button>
-</form>
+        <button type="submit" class="btn">Batch Add Problems</button>
+    </form>
+</div>
 {% endblock %}

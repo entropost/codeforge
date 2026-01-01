@@ -121,3 +121,51 @@ class LevelScheduler:
 
         record.last_review_date = now
         return record
+
+class PracticeFileManager:
+    @staticmethod
+    def create_practice_file(record):
+        """
+        Creates a practice file for the given record.
+        Path: <PRACTICE_DIRECTORY>/<course_name>/level <level>/<problem_title>.<ext>
+        """
+        if not settings.PRACTICE_DIRECTORY:
+            return None
+
+        import re
+        def sanitize(text):
+            return re.sub(r'[\\/*?:"<>|]', "", text).replace(" ", "_")
+
+        base_path = Path(settings.PRACTICE_DIRECTORY)
+        course_name = record.course.name if record.course else "General"
+        course_dir = base_path / sanitize(course_name)
+        level_dir = course_dir / f"level_{record.current_level}"
+        
+        # Determine extension
+        ext = 'py'
+        if record.course and record.course.language == 'cpp':
+            ext = 'cpp'
+        
+        # Sanitize problem title for filename
+        filename = f"{sanitize(record.problem.title)}.{ext}"
+        file_path = level_dir / filename
+
+        try:
+            # Create directories
+            level_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create file if it doesn't exist
+            if not file_path.exists():
+                with open(file_path, 'w') as f:
+                    if ext == 'py':
+                        f.write(f"# Problem: {record.problem.title}\n")
+                        f.write(f"# URL: {record.problem.url}\n\n")
+                    else:
+                        f.write(f"// Problem: {record.problem.title}\n")
+                        f.write(f"// URL: {record.problem.url}\n\n")
+                        f.write("#include <iostream>\n\nusing namespace std;\n\nint main() {\n    return 0;\n}\n")
+            
+            return str(file_path)
+        except Exception as e:
+            print(f"Error creating practice file: {e}")
+            return None

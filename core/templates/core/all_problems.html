@@ -1,92 +1,147 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">All Tracked Problems</h2>
+<style>
+    .problem-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Problem</th>
-                            <th>Difficulty</th>
-                            <th>Level</th>
-                            <th>Tags</th>
-                            <th>Next Review</th>
-                            <th>Total Reviews</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in all_records %}
-                        <tr>
-                            <td>
-                                <a href="{{ record.problem.url }}" target="_blank" class="text-decoration-none fw-bold">
-                                    {{ record.problem.title }}
-                                </a>
-                                <br>
-                                <small class="text-muted">{{ record.problem.get_source_display }}</small>
-                                {% if record.course %}
-                                <a href="{% url 'course_detail' record.course.id %}">{{ record.course.name }}</a>
-                                <small class="text-muted">({{ record.course.get_language_display }})</small>
-                                {% else %}
-                                <span class="text-muted">General</span>
-                                {% endif %}
-                                {% if record.is_paused %}
-                                <span class="badge bg-warning text-dark">Paused</span>
-                                {% endif %}
-                                {% if record.course.is_paused %}
-                                <span class="badge bg-secondary">Course Paused</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span
-                                    class="badge {% if record.problem.difficulty == 'Easy' %}bg-success{% elif record.problem.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
-                                    {{ record.problem.difficulty }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge bg-info text-dark">{{ record.current_level }}</span>
-                            </td>
-                            <td>
-                                {% for tag in record.problem.pattern_tags %}
-                                <span class="badge bg-secondary">{{ tag }}</span>
-                                {% endfor %}
-                            </td>
-                            <td>
-                                {% if record.next_review_date %}
-                                {{ record.next_review_date|date:"Y-m-d H:i" }}
-                                {% if record.next_review_date <= now %} <span class="badge bg-danger">Due</span>
-                                    {% endif %}
-                                    {% else %}
-                                    <span class="text-muted">Not scheduled</span>
-                                    {% endif %}
-                            </td>
-                            <td>{{ record.total_reviews }}</td>
-                            <td>
-                                <a href="{% url 'log_review' record.id %}" class="btn btn-sm btn-outline-primary">Log
-                                    Review</a>
-                                <a href="{% url 'toggle_problem_pause' record.id %}"
-                                    class="btn btn-sm btn-outline-warning">
-                                    {% if record.is_paused %}Unpause{% else %}Pause{% endif %}
-                                </a>
-                                <a href="{% url 'reset_progress' record.id %}" class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
-                                <a href="{% url 'delete_problem' record.id %}" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this problem? This action cannot be undone.');">Delete</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">No problems tracked yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    .problem-table th,
+    .problem-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .problem-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-easy {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-hard {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .badge-info {
+        background: #e7f3ff;
+        color: #007bff;
+    }
+
+    .badge-warning {
+        background: #ffc107;
+        color: #856404;
+    }
+
+    .badge-danger {
+        background: #dc3545;
+        color: white;
+    }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h2>All Tracked Problems</h2>
+    <a href="{% url 'add_problem' %}" class="btn">Add New Problem</a>
+</div>
+
+<div class="problem-card" style="padding: 0; overflow: hidden;">
+    <table class="problem-table">
+        <thead>
+            <tr>
+                <th>Problem</th>
+                <th>Difficulty</th>
+                <th>Level</th>
+                <th>Next Review</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in all_records %}
+            <tr>
+                <td>
+                    <div style="font-weight: 600; margin-bottom: 4px;">
+                        <a href="{{ record.problem.url }}" target="_blank"
+                            style="text-decoration: none; color: #007bff;">
+                            {{ record.problem.title }}
+                        </a>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6c757d;">
+                        {{ record.problem.get_source_display }} |
+                        {% if record.course %}
+                        <a href="{% url 'course_detail' record.course.id %}" style="color: #6c757d;">{{
+                            record.course.name }}</a>
+                        {% else %}
+                        General
+                        {% endif %}
+                    </div>
+                    {% if record.is_paused or record.course.is_paused %}
+                    <div style="margin-top: 5px;">
+                        <span class="badge badge-warning">Paused</span>
+                    </div>
+                    {% endif %}
+                </td>
+                <td>
+                    <span
+                        class="badge {% if record.problem.difficulty == 'Easy' %}badge-easy{% elif record.problem.difficulty == 'Medium' %}badge-medium{% else %}badge-hard{% endif %}">
+                        {{ record.problem.difficulty }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge badge-info">Level {{ record.current_level }}</span>
+                </td>
+                <td>
+                    {% if record.next_review_date %}
+                    <div style="font-size: 0.9rem; color: #495057;">{{ record.next_review_date|date:"Y-m-d" }}</div>
+                    {% if record.next_review_date <= now %} <span class="badge badge-danger">Due</span>
+                        {% endif %}
+                        {% else %}
+                        <span style="color: #adb5bd; font-size: 0.9rem;">Not scheduled</span>
+                        {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'log_review' record.id %}" class="btn btn-secondary"
+                            style="padding: 6px 10px; font-size: 0.75rem;">Review</a>
+                        <a href="{% url 'toggle_problem_pause' record.id %}" class="btn btn-secondary"
+                            style="padding: 6px 10px; font-size: 0.75rem;">
+                            {% if record.is_paused %}Unpause{% else %}Pause{% endif %}
+                        </a>
+                        <a href="{% url 'delete_problem' record.id %}" class="btn btn-danger"
+                            style="padding: 6px 10px; font-size: 0.75rem;"
+                            onclick="return confirm('Are you sure you want to delete this problem?');">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: #adb5bd;">No problems tracked yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
