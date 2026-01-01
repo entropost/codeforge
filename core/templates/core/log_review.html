@@ -15,6 +15,15 @@
         <li>Solve the problem from scratch.</li>
         <li>Come back here to log your result.</li>
     </ol>
+    {% if practice_file_path %}
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+        <strong>Practice File:</strong>
+        <code
+            style="display: block; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px; word-break: break-all;">
+            {{ practice_file_path }}
+        </code>
+    </div>
+    {% endif %}
 </div>
 
 <div class="problem-card">

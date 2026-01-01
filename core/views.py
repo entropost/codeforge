@@ -166,10 +166,15 @@ def log_review(request, record_id):
             return redirect('review_queue')
     else:
         form = ReviewForm()
-        # Trigger practice file creation when review starts
-        PracticeFileManager.create_practice_file(record)
     
-    return render(request, 'core/log_review.html', {'form': form, 'record': record})
+    # Trigger practice file creation/retrieval
+    practice_file_path = PracticeFileManager.create_practice_file(record)
+    
+    return render(request, 'core/log_review.html', {
+        'form': form, 
+        'record': record,
+        'practice_file_path': practice_file_path
+    })
 
 def dashboard(request):
     total_problems = UserProblemRecord.objects.filter(is_paused=False).exclude(course__is_paused=True).count()
