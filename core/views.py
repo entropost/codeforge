@@ -249,6 +249,17 @@ def delete_course(request, course_id):
     course.delete()
     return redirect('course_list')
 
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, user=get_user())
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            return redirect('course_detail', course_id=course.id)
+    else:
+        form = CourseForm(instance=course)
+    return render(request, 'core/edit_course.html', {'form': form, 'course': course})
+
 def import_problems(request, course_id):
     target_course = get_object_or_404(Course, id=course_id, user=get_user())
     

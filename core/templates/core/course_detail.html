@@ -10,6 +10,7 @@
 <div style="margin-bottom: 20px;">
     <a href="{% url 'review_queue' %}?course={{ course.id }}" class="btn">Review Course</a>
     <a href="{% url 'import_problems' course.id %}" class="btn">Import Problems</a>
+    <a href="{% url 'edit_course' course.id %}" class="btn">Edit Course</a>
     <a href="{% url 'toggle_course_pause' course.id %}" class="btn btn-warning">
         {% if course.is_paused %}Unpause{% else %}Pause{% endif %} Course
     </a>

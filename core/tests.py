@@ -102,3 +102,13 @@ class CourseTrackingTest(TestCase):
         # Verify problem removed from Course 1 but not Course 2
         self.assertFalse(self.course1.problems.filter(id=self.problem.id).exists())
         self.assertTrue(self.course2.problems.filter(id=self.problem.id).exists())
+
+    def test_rename_course(self):
+        response = self.client.post(reverse('edit_course', args=[self.course1.id]), {
+            'name': 'Updated Course Name',
+            'description': 'Updated Description'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.course1.refresh_from_db()
+        self.assertEqual(self.course1.name, 'Updated Course Name')
+        self.assertEqual(self.course1.description, 'Updated Description')
