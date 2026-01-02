@@ -389,3 +389,15 @@ def statistics(request):
         'activity_data': activity_data,
     }
     return render(request, 'core/statistics.html', context)
+
+def review_logs(request):
+    user = get_user()
+    logs = ReviewLog.objects.filter(record__user=user).select_related('record__problem', 'record__course').order_by('-review_date')
+    
+    latest_review = logs.first()
+    
+    context = {
+        'logs': logs,
+        'latest_review': latest_review,
+    }
+    return render(request, 'core/review_logs.html', context)

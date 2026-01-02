@@ -124,3 +124,37 @@ class CourseTrackingTest(TestCase):
         self.assertEqual(response.status_code, 302)
         course = Course.objects.get(name='New Course')
         self.assertEqual(course.language, 'cpp')
+
+class LogsPageTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='password')
+        self.client = Client()
+        self.client.login(username='user', password='password')
+        
+        self.course = Course.objects.create(user=self.user, name="Test Course")
+        self.problem = Problem.objects.create(
+            source='LC',
+            source_id='test-problem',
+            title='Test Problem',
+            url='https://leetcode.com/problems/test-problem/',
+            difficulty='Easy'
+        )
+        self.record = UserProblemRecord.objects.create(
+            user=self.user,
+            problem=self.problem,
+            course=self.course
+        )
+        
+        from core.models import ReviewLog
+        ReviewLog.objects.create(record=self.record, rating=2)
+        ReviewLog.objects.create(record=self.record, rating=1)
+
+    def test_logs_page_view(self):
+        response = self.client.get(reverse('review_logs'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/review_logs.html')
+        self.assertEqual(len(response.context['logs']), 2)
+        # Verify chronological order (newest first)
+        self.assertEqual(response.context['logs'][0].rating, 1)
+        self.assertEqual(response.context['logs'][1].rating, 2)
+        self.assertEqual(response.context['latest_review'].rating, 1)
