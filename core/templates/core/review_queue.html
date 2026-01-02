@@ -29,8 +29,8 @@
                 {% if record.course %}
                 <strong>Course:</strong> <a href="{% url 'course_detail' record.course.id %}"
                     style="color: #007bff; text-decoration: none;">{{ record.course.name }}</a>
-                <span style="margin-left: 10px;"><strong>Language:</strong> {{ record.course.get_language_display
-                    }}</span>
+                <span style="margin-left: 10px;"><strong>Language:</strong>
+                    {{ record.course.get_language_display }}</span>
                 {% else %}
                 <strong>Course:</strong> General
                 {% endif %}

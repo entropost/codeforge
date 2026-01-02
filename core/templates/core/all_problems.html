@@ -92,8 +92,8 @@
                     <div style="font-size: 0.8rem; color: #6c757d;">
                         {{ record.problem.get_source_display }} |
                         {% if record.course %}
-                        <a href="{% url 'course_detail' record.course.id %}" style="color: #6c757d;">{{
-                            record.course.name }}</a>
+                        <a href="{% url 'course_detail' record.course.id %}" style="color: #6c757d;">
+                            {{record.course.name }}</a>
                         {% else %}
                         General
                         {% endif %}
