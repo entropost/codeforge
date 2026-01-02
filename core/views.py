@@ -410,6 +410,54 @@ def statistics(request):
             
     upcoming_data = dict(sorted(upcoming_data.items()))
     
+    # Heatmap Data (Last 365 Days)
+    today = timezone.now().date()
+    one_year_ago = today - timedelta(days=365)
+    
+    # Get all review dates for the last year
+    heatmap_logs = logs.filter(review_date__date__gte=one_year_ago)
+    daily_counts = {}
+    for log in heatmap_logs:
+        date_str = log.review_date.date().strftime('%Y-%m-%d')
+        daily_counts[date_str] = daily_counts.get(date_str, 0) + 1
+        
+    # Generate full year grid
+    # We want to start from one_year_ago and go up to today
+    # But for a nice grid, we might want to align to weeks. 
+    # GitHub starts from one year ago, but aligns the start date to the correct weekday row.
+    
+    heatmap_data = []
+    current_date = one_year_ago
+    
+    # Adjust start date to the previous Sunday (or Monday depending on preference) to align grid
+    # weekday(): Mon=0, Sun=6. Let's say we want Sun as row 0.
+    # If current_date is Wed (2), we want to go back 3 days to Sun.
+    days_to_subtract = (current_date.weekday() + 1) % 7
+    start_date = current_date - timedelta(days=days_to_subtract)
+    
+    # We need 53 weeks to cover a full year + padding
+    for week in range(53):
+        week_data = []
+        for day in range(7):
+            day_date = start_date + timedelta(weeks=week, days=day)
+            date_str = day_date.strftime('%Y-%m-%d')
+            count = daily_counts.get(date_str, 0)
+            
+            # Determine intensity level (0-4)
+            if count == 0: intensity = 0
+            elif count <= 2: intensity = 1
+            elif count <= 5: intensity = 2
+            elif count <= 9: intensity = 3
+            else: intensity = 4
+            
+            week_data.append({
+                'date': date_str,
+                'count': count,
+                'intensity': intensity,
+                'in_range': one_year_ago <= day_date <= today
+            })
+        heatmap_data.append(week_data)
+
     context = {
         'total_problems': records.count(),
         'total_reviews': total_reviews,
@@ -420,6 +468,7 @@ def statistics(request):
         'level_counts': level_counts,
         'activity_data': activity_data,
         'upcoming_data': upcoming_data,
+        'heatmap_data': heatmap_data,
     }
     return render(request, 'core/statistics.html', context)
 
