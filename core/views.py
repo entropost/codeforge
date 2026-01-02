@@ -321,3 +321,71 @@ def toggle_course_pause(request, course_id):
     course.is_paused = not course.is_paused
     course.save()
     return redirect(request.META.get('HTTP_REFERER', 'course_list'))
+
+def statistics(request):
+    user = get_user()
+    records = UserProblemRecord.objects.filter(user=user)
+    logs = ReviewLog.objects.filter(record__user=user)
+    
+    # Language Breakdown
+    language_counts = {}
+    for r in records:
+        if r.course:
+            lang = r.course.get_language_display()
+            language_counts[lang] = language_counts.get(lang, 0) + 1
+        else:
+            language_counts['General'] = language_counts.get('General', 0) + 1
+            
+    # Source Breakdown
+    source_counts = {}
+    for r in records:
+        source = r.problem.get_source_display()
+        source_counts[source] = source_counts.get(source, 0) + 1
+        
+    # Difficulty Breakdown
+    difficulty_counts = {'Easy': 0, 'Medium': 0, 'Hard': 0}
+    for r in records:
+        diff = r.problem.difficulty
+        difficulty_counts[diff] = difficulty_counts.get(diff, 0) + 1
+        
+    # Level Distribution
+    level_counts = {}
+    for r in records:
+        level = r.current_level
+        level_counts[level] = level_counts.get(level, 0) + 1
+    # Sort level counts by level
+    level_counts = dict(sorted(level_counts.items()))
+        
+    # Activity (Last 30 Days)
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    activity_logs = logs.filter(review_date__gte=thirty_days_ago)
+    
+    activity_data = {}
+    for i in range(30):
+        date = (timezone.now() - timedelta(days=i)).date()
+        activity_data[date.strftime('%Y-%m-%d')] = 0
+        
+    for log in activity_logs:
+        date_str = log.review_date.date().strftime('%Y-%m-%d')
+        if date_str in activity_data:
+            activity_data[date_str] += 1
+            
+    # Sort activity data by date
+    activity_data = dict(sorted(activity_data.items()))
+    
+    # Success Rate
+    total_reviews = logs.count()
+    pass_reviews = logs.filter(rating=2).count()
+    success_rate = (pass_reviews / total_reviews * 100) if total_reviews > 0 else 0
+    
+    context = {
+        'total_problems': records.count(),
+        'total_reviews': total_reviews,
+        'success_rate': round(success_rate, 1),
+        'language_counts': language_counts,
+        'source_counts': source_counts,
+        'difficulty_counts': difficulty_counts,
+        'level_counts': level_counts,
+        'activity_data': activity_data,
+    }
+    return render(request, 'core/statistics.html', context)

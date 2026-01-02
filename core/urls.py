@@ -18,4 +18,5 @@ urlpatterns = [
     path('courses/<int:course_id>/import/', views.import_problems, name='import_problems'),
     path('toggle-pause/<int:record_id>/', views.toggle_problem_pause, name='toggle_problem_pause'),
     path('courses/<int:course_id>/toggle-pause/', views.toggle_course_pause, name='toggle_course_pause'),
+    path('statistics/', views.statistics, name='statistics'),
 ]
