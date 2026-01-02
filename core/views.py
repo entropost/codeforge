@@ -144,7 +144,14 @@ def review_queue(request):
     
     due_records = due_records.order_by('next_review_date')
     
-    return render(request, 'core/review_queue.html', {'due_records': due_records, 'course_id': course_id})
+    new_problems = due_records.filter(total_reviews=0)
+    pending_reviews = due_records.filter(total_reviews__gt=0)
+    
+    return render(request, 'core/review_queue.html', {
+        'new_problems': new_problems,
+        'pending_reviews': pending_reviews,
+        'course_id': course_id
+    })
 
 def log_review(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id)
@@ -188,11 +195,15 @@ def log_review(request, record_id):
     })
 
 def dashboard(request):
-    total_problems = UserProblemRecord.objects.filter(is_paused=False).exclude(course__is_paused=True).count()
-    due_today = UserProblemRecord.objects.filter(
+    due_records = UserProblemRecord.objects.filter(
         next_review_date__lte=timezone.now(),
         is_paused=False
-    ).exclude(course__is_paused=True).count()
+    ).exclude(course__is_paused=True)
+    
+    total_problems = UserProblemRecord.objects.filter(is_paused=False).exclude(course__is_paused=True).count()
+    due_today = due_records.count()
+    new_today = due_records.filter(total_reviews=0).count()
+    review_today = due_records.filter(total_reviews__gt=0).count()
     total_reviews = ReviewLog.objects.count()
     
     # Recent Activity
@@ -212,6 +223,8 @@ def dashboard(request):
     context = {
         'total_problems': total_problems,
         'due_today': due_today,
+        'new_today': new_today,
+        'review_today': review_today,
         'total_reviews': total_reviews,
         'recent_reviews': recent_reviews,
         'tag_counts': tag_counts

@@ -15,45 +15,94 @@
 </div>
 {% endif %}
 
-<div style="display: grid; gap: 20px;">
-    {% for record in due_records %}
-    <div class="problem-card" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
-            <div style="font-size: 0.85rem; color: #6c757d; display: flex; gap: 15px; flex-wrap: wrap;">
-                <span><strong>Source:</strong> {{ record.problem.get_source_display }}</span>
-                <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
-                <span><strong>Level:</strong> {{ record.current_level }}</span>
+<div style="display: grid; gap: 30px;">
+    {% if new_problems %}
+    <section>
+        <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <span
+                style="background: #007bff; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">{{
+                new_problems.count }}</span>
+            New Problems
+        </h3>
+        <div style="display: grid; gap: 15px;">
+            {% for record in new_problems %}
+            <div class="problem-card"
+                style="display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #007bff;">
+                <div>
+                    <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
+                    <div style="font-size: 0.85rem; color: #6c757d; display: flex; gap: 15px; flex-wrap: wrap;">
+                        <span><strong>Source:</strong> {{ record.problem.get_source_display }}</span>
+                        <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                        {% if record.course %}
+                        <strong>Course:</strong> <a href="{% url 'course_detail' record.course.id %}"
+                            style="color: #007bff; text-decoration: none;">{{ record.course.name }}</a>
+                        {% else %}
+                        <strong>Course:</strong> General
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'log_review' record.id %}" class="btn" style="padding: 10px 20px;">Learn Now</a>
+                </div>
             </div>
-            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
-                {% if record.course %}
-                <strong>Course:</strong> <a href="{% url 'course_detail' record.course.id %}"
-                    style="color: #007bff; text-decoration: none;">{{ record.course.name }}</a>
-                <span style="margin-left: 10px;"><strong>Language:</strong>
-                    {{ record.course.get_language_display }}</span>
-                {% else %}
-                <strong>Course:</strong> General
-                {% endif %}
-            </div>
+            {% endfor %}
         </div>
-        <div style="display: flex; gap: 10px;">
-            <a href="{% url 'log_review' record.id %}" class="btn" style="padding: 10px 20px;">Review Now</a>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <a href="{% url 'toggle_problem_pause' record.id %}" class="btn btn-secondary"
-                    style="padding: 4px 12px; font-size: 0.75rem; text-align: center;">Pause</a>
-                <a href="{% url 'reset_progress' record.id %}" class="btn btn-danger"
-                    style="padding: 4px 12px; font-size: 0.75rem; text-align: center;"
-                    onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
+    </section>
+    {% endif %}
+
+    {% if pending_reviews %}
+    <section>
+        <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <span
+                style="background: #28a745; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">{{
+                pending_reviews.count }}</span>
+            Pending Reviews
+        </h3>
+        <div style="display: grid; gap: 15px;">
+            {% for record in pending_reviews %}
+            <div class="problem-card"
+                style="display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #28a745;">
+                <div>
+                    <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
+                    <div style="font-size: 0.85rem; color: #6c757d; display: flex; gap: 15px; flex-wrap: wrap;">
+                        <span><strong>Level:</strong> {{ record.current_level }}</span>
+                        <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                        {% if record.course %}
+                        <strong>Course:</strong> <a href="{% url 'course_detail' record.course.id %}"
+                            style="color: #007bff; text-decoration: none;">{{ record.course.name }}</a>
+                        {% else %}
+                        <strong>Course:</strong> General
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'log_review' record.id %}" class="btn"
+                        style="padding: 10px 20px; background: #28a745;">Review Now</a>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <a href="{% url 'toggle_problem_pause' record.id %}" class="btn btn-secondary"
+                            style="padding: 4px 12px; font-size: 0.75rem; text-align: center;">Pause</a>
+                        <a href="{% url 'reset_progress' record.id %}" class="btn btn-danger"
+                            style="padding: 4px 12px; font-size: 0.75rem; text-align: center;"
+                            onclick="return confirm('Are you sure you want to reset progress for this problem?');">Reset</a>
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
-    {% empty %}
+    </section>
+    {% endif %}
+
+    {% if not new_problems and not pending_reviews %}
     <div class="problem-card" style="text-align: center; padding: 60px; background: white;">
         <div style="font-size: 3rem; margin-bottom: 20px;">🎉</div>
         <h3 style="margin-bottom: 10px;">All caught up!</h3>
         <p style="color: #6c757d;">No problems due for review. Great job!</p>
         <a href="{% url 'dashboard' %}" class="btn" style="margin-top: 20px;">Back to Dashboard</a>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}
