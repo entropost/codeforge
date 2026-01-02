@@ -35,8 +35,8 @@
         <div class="heatmap-week" style="display: flex; flex-direction: column; gap: 3px;">
             {% for day in week %}
             {% if day.in_range %}
-            <div class="heatmap-day intensity-{{ day.intensity }}" title="{{ day.date }}: {{ day.count }} reviews"
-                data-bs-toggle="tooltip" data-bs-placement="top"></div>
+            <div class="heatmap-day intensity-{{ day.intensity }}" data-date="{{ day.date }}"
+                data-count="{{ day.count }}"></div>
             {% else %}
             <div class="heatmap-day" style="background-color: transparent;"></div>
             {% endif %}
@@ -56,12 +56,22 @@
     </div>
 </div>
 
+<!-- Custom Tooltip -->
+<div id="heatmap-tooltip"
+    style="display: none; position: absolute; background: rgba(0, 0, 0, 0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; pointer-events: none; z-index: 1000;">
+</div>
+
 <style>
     .heatmap-day {
         width: 12px;
         height: 12px;
         border-radius: 2px;
         background-color: #ebedf0;
+        cursor: pointer;
+    }
+
+    .heatmap-day:hover {
+        border: 1px solid rgba(0, 0, 0, 0.5);
     }
 
     .intensity-0 {
@@ -125,6 +135,28 @@
 </div>
 
 <script>
+    // Tooltip Logic
+    const tooltip = document.getElementById('heatmap-tooltip');
+    const days = document.querySelectorAll('.heatmap-day[data-date]');
+
+    days.forEach(day => {
+        day.addEventListener('mouseenter', (e) => {
+            const date = day.getAttribute('data-date');
+            const count = day.getAttribute('data-count');
+            tooltip.innerHTML = `<strong>${date}</strong>: ${count} reviews`;
+            tooltip.style.display = 'block';
+
+            // Position tooltip
+            const rect = day.getBoundingClientRect();
+            tooltip.style.left = rect.left + window.scrollX - (tooltip.offsetWidth / 2) + 6 + 'px';
+            tooltip.style.top = rect.top + window.scrollY - 30 + 'px';
+        });
+
+        day.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
+    });
+
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
