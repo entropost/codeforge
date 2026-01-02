@@ -76,6 +76,7 @@
                 <th>Difficulty</th>
                 <th>Level</th>
                 <th>Next Review</th>
+                <th>Retrievability</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -121,6 +122,20 @@
                         {% else %}
                         <span style="color: #adb5bd; font-size: 0.9rem;">Not scheduled</span>
                         {% endif %}
+                </td>
+                <td>
+                    {% with r=record.get_retrievability %}
+                    <div
+                        style="width: 100px; background: #eee; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
+                        <div
+                            style="width: {{ r }}%; height: 100%; background: {% if r > 90 %}#28a745{% elif r > 70 %}#ffc107{% else %}#dc3545{% endif %};">
+                        </div>
+                    </div>
+                    <span
+                        style="font-size: 0.8rem; font-weight: 600; color: {% if r > 90 %}#28a745{% elif r > 70 %}#856404{% else %}#dc3545{% endif %};">
+                        {{ r }}%
+                    </span>
+                    {% endwith %}
                 </td>
                 <td>
                     <div style="display: flex; gap: 8px;">

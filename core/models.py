@@ -35,6 +35,26 @@ class UserProblemRecord(models.Model):
     class Meta:
         unique_together = ('user', 'problem', 'course')
 
+    def get_retrievability(self):
+        if not self.last_review_date:
+            return 100.0
+        
+        from django.conf import settings
+        from django.utils import timezone
+        import math
+        
+        # Use the interval for the current level as stability
+        intervals = settings.REVIEW_INTERVALS
+        if self.current_level > 0:
+            stability = intervals[min(self.current_level - 1, len(intervals) - 1)]
+        else:
+            stability = 1  # Default for level 0
+            
+        elapsed_days = (timezone.now() - self.last_review_date).total_seconds() / (24 * 3600)
+        # R = 0.9 ^ (t / S)
+        retrievability = math.pow(0.9, elapsed_days / stability)
+        return round(retrievability * 100, 1)
+
     def reset_progress(self):
         from django.utils import timezone
         self.difficulty = 0.0

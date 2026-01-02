@@ -391,6 +391,25 @@ def statistics(request):
     pass_reviews = logs.filter(rating=2).count()
     success_rate = (pass_reviews / total_reviews * 100) if total_reviews > 0 else 0
     
+    # Upcoming Reviews (Next 30 Days)
+    upcoming_data = {}
+    for i in range(30):
+        date = (timezone.now() + timedelta(days=i)).date()
+        upcoming_data[date.strftime('%Y-%m-%d')] = 0
+        
+    upcoming_records = records.filter(
+        next_review_date__gte=timezone.now(),
+        next_review_date__lte=timezone.now() + timedelta(days=30),
+        is_paused=False
+    ).exclude(course__is_paused=True)
+    
+    for r in upcoming_records:
+        date_str = r.next_review_date.date().strftime('%Y-%m-%d')
+        if date_str in upcoming_data:
+            upcoming_data[date_str] += 1
+            
+    upcoming_data = dict(sorted(upcoming_data.items()))
+    
     context = {
         'total_problems': records.count(),
         'total_reviews': total_reviews,
@@ -400,6 +419,7 @@ def statistics(request):
         'difficulty_counts': difficulty_counts,
         'level_counts': level_counts,
         'activity_data': activity_data,
+        'upcoming_data': upcoming_data,
     }
     return render(request, 'core/statistics.html', context)
 
