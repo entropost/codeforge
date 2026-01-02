@@ -26,8 +26,21 @@
     {% endif %}
 </div>
 
+<div class="problem-card" style="text-align: center; margin-bottom: 20px;">
+    <h3 style="margin-bottom: 10px; color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+        Focus Timer</h3>
+    <div id="timer-display"
+        style="font-size: 3rem; font-weight: 700; color: #212529; font-variant-numeric: tabular-nums;">
+        00:00:00
+    </div>
+    <div style="margin-top: 15px;">
+        <button type="button" id="toggle-timer-btn" class="btn"
+            style="background: #ffc107; color: #212529; min-width: 120px;">Pause</button>
+    </div>
+</div>
+
 <div class="problem-card">
-    <form method="post">
+    <form method="post" id="review-form">
         {% csrf_token %}
         <div style="margin-bottom: 30px;">
             <p style="font-weight: 600; margin-bottom: 15px;">How did you do?</p>
@@ -42,10 +55,7 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="id_time_spent">Time Spent:</label>
-            {{ form.time_spent }}
-        </div>
+        <input type="hidden" name="time_spent" id="id_time_spent">
 
         <div class="form-group">
             <label for="id_user_insight">Insights/Notes:</label>
@@ -53,4 +63,51 @@
         </div>
     </form>
 </div>
+
+<script>
+    let seconds = 0;
+    let timerInterval;
+    let isRunning = true;
+    const timerDisplay = document.getElementById('timer-display');
+    const toggleBtn = document.getElementById('toggle-timer-btn');
+    const timeSpentInput = document.getElementById('id_time_spent');
+    const form = document.getElementById('review-form');
+
+    function formatTime(totalSeconds) {
+        const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function updateTimer() {
+        if (isRunning) {
+            seconds++;
+            timerDisplay.textContent = formatTime(seconds);
+        }
+    }
+
+    function toggleTimer() {
+        isRunning = !isRunning;
+        if (isRunning) {
+            toggleBtn.textContent = 'Pause';
+            toggleBtn.style.background = '#ffc107';
+            toggleBtn.style.color = '#212529';
+        } else {
+            toggleBtn.textContent = 'Resume';
+            toggleBtn.style.background = '#28a745';
+            toggleBtn.style.color = 'white';
+        }
+    }
+
+    toggleBtn.addEventListener('click', toggleTimer);
+
+    // Start timer
+    timerInterval = setInterval(updateTimer, 1000);
+
+    // Update hidden input on submit
+    form.addEventListener('submit', function () {
+        timeSpentInput.value = formatTime(seconds);
+    });
+</script>
 {% endblock %}
