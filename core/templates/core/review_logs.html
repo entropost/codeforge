@@ -11,9 +11,8 @@
             <div>
                 <label>Problem</label>
                 <div style="font-weight: 600; font-size: 1.1rem;">{{ latest_review.record.problem.title }}</div>
-                <div style="font-size: 0.85rem; color: var(--muted-text);">{{
-                    latest_review.record.course.name|default:"General"
-                    }}</div>
+                <div style="font-size: 0.85rem; color: var(--muted-text);">
+                    {{ latest_review.record.course.name|default:"General"}}</div>
             </div>
             <div>
                 <label>Status</label>
@@ -54,8 +53,7 @@
                 <tbody>
                     {% for log in logs %}
                     <tr class="history-row">
-                        <td class="history-date">{{ log.review_date|date:"M d, H:i"
-                            }}</td>
+                        <td class="history-date">{{ log.review_date|date:"M d, H:i" }}</td>
                         <td style="padding: 12px;">
                             <div style="font-weight: 600;">
                                 <a href="{% url 'problem_details' log.record.problem.id %}"
@@ -63,9 +61,8 @@
                                     {{ log.record.problem.title }}
                                 </a>
                             </div>
-                            <div style="font-size: 0.75rem; color: var(--muted-text);">{{
-                                log.record.course.name|default:"General"
-                                }}</div>
+                            <div style="font-size: 0.75rem; color: var(--muted-text);">
+                                {{ log.record.course.name|default:"General" }}</div>
                         </td>
                         <td style="padding: 12px;">
                             <span
