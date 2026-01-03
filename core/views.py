@@ -243,6 +243,13 @@ def reset_problem_progress(request, record_id):
     record.reset_progress()
     return redirect(request.META.get('HTTP_REFERER', 'all_problems'))
 
+def reset_course_progress(request, course_id):
+    course = get_object_or_404(Course, id=course_id, user=get_user())
+    records = UserProblemRecord.objects.filter(user=get_user(), course=course)
+    for record in records:
+        record.reset_progress()
+    return redirect('course_detail', course_id=course.id)
+
 def delete_problem(request, record_id):
     record = get_object_or_404(UserProblemRecord, id=record_id, user=get_user())
     
