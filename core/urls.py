@@ -20,4 +20,7 @@ urlpatterns = [
     path('courses/<int:course_id>/toggle-pause/', views.toggle_course_pause, name='toggle_course_pause'),
     path('statistics/', views.statistics, name='statistics'),
     path('logs/', views.review_logs, name='review_logs'),
+    path('data-management/', views.data_management, name='data_management'),
+    path('export/', views.export_data, name='export_data'),
+    path('import/', views.import_data, name='import_data'),
 ]

@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="problem-card">
+    <h1>Data Management</h1>
+    <p class="muted">Export your progress for backup or migrate it to another machine. You can also import a previously
+        exported JSON file.</p>
+
+    {% if success %}
+    <div
+        style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        {{ success }}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div
+        style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 30px;">
+        <h3>Export Data</h3>
+        <p>Download all your problems, courses, records, and review logs as a JSON file.</p>
+        <a href="{% url 'export_data' %}" class="btn">Export to JSON</a>
+    </div>
+
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid var(--border-color);">
+
+    <div>
+        <h3>Import Data</h3>
+        <p>Upload a CodeForge export file (JSON) to restore your data. Existing records will be updated if the imported
+            data is newer.</p>
+        <form action="{% url 'import_data' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="file" name="file" accept=".json" required>
+            </div>
+            <button type="submit" class="btn btn-secondary">Import JSON File</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -158,3 +158,89 @@ class LogsPageTest(TestCase):
         self.assertEqual(response.context['logs'][0].rating, 1)
         self.assertEqual(response.context['logs'][1].rating, 2)
         self.assertEqual(response.context['latest_review'].rating, 1)
+
+class DataManagementTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='password')
+        self.client = Client()
+        self.client.login(username='user', password='password')
+        
+        self.course = Course.objects.create(user=self.user, name="Test Course")
+        self.problem = Problem.objects.create(
+            source='LC',
+            source_id='test-prob',
+            title='Test Prob',
+            url='https://leetcode.com/problems/test-prob/',
+            difficulty='Easy'
+        )
+        self.record = UserProblemRecord.objects.create(
+            user=self.user,
+            problem=self.problem,
+            course=self.course,
+            total_reviews=1
+        )
+        from core.models import ReviewLog
+        ReviewLog.objects.create(record=self.record, rating=2)
+
+    def test_export_data(self):
+        response = self.client.get(reverse('export_data'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        
+        import json
+        data = json.loads(response.content)
+        self.assertIn('problems', data)
+        self.assertIn('courses', data)
+        self.assertIn('records', data)
+        self.assertIn('logs', data)
+        
+        self.assertEqual(len(data['problems']), 1)
+        self.assertEqual(data['problems'][0]['fields']['title'], 'Test Prob')
+
+    def test_import_data(self):
+        # 1. Export current data
+        export_response = self.client.get(reverse('export_data'))
+        export_content = export_response.content
+        
+        # 2. Clear data (except user)
+        UserProblemRecord.objects.all().delete()
+        Course.objects.all().delete()
+        Problem.objects.all().delete()
+        
+        # 3. Import data
+        from io import BytesIO
+        import_file = BytesIO(export_content)
+        import_file.name = 'export.json'
+        
+        response = self.client.post(reverse('import_data'), {'file': import_file})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Data imported successfully!')
+        
+        # 4. Verify data restored
+        self.assertEqual(Problem.objects.count(), 1)
+        self.assertEqual(Course.objects.count(), 1)
+        self.assertEqual(UserProblemRecord.objects.count(), 1)
+        self.assertEqual(UserProblemRecord.objects.first().total_reviews, 1)
+        from core.models import ReviewLog
+        self.assertEqual(ReviewLog.objects.count(), 1)
+
+    def test_import_data_update(self):
+        # 1. Export current data
+        export_response = self.client.get(reverse('export_data'))
+        export_content = export_response.content
+        
+        # 2. Modify local record (simulate older state)
+        self.record.total_reviews = 0
+        self.record.save()
+        
+        # 3. Import data (simulate newer state)
+        from io import BytesIO
+        import_file = BytesIO(export_content)
+        import_file.name = 'export.json'
+        
+        response = self.client.post(reverse('import_data'), {'file': import_file})
+        self.assertEqual(response.status_code, 200)
+        
+        # 4. Verify record updated
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.total_reviews, 1)

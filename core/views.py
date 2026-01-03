@@ -5,6 +5,9 @@ from .models import Problem, UserProblemRecord, ReviewLog, Course
 from .forms import ProblemForm, ReviewForm, CourseForm
 from django.contrib.auth.models import User
 from .services import ProblemFetcher, LevelScheduler, PracticeFileManager, GitManager
+import json
+from django.http import HttpResponse, JsonResponse
+from django.core import serializers
 
 # Helper to get the single user
 def get_user():
@@ -483,3 +486,134 @@ def review_logs(request):
         'latest_review': latest_review,
     }
     return render(request, 'core/review_logs.html', context)
+
+def data_management(request):
+    return render(request, 'core/data_management.html')
+
+def export_data(request):
+    user = get_user()
+    
+    # We want to export Problems, Courses, UserProblemRecords, and ReviewLogs
+    # Problems are shared, but we only really need those associated with the user's records or courses
+    records = UserProblemRecord.objects.filter(user=user)
+    courses = Course.objects.filter(user=user)
+    
+    # Get all problems associated with these records or courses
+    problem_ids = set(records.values_list('problem_id', flat=True))
+    problem_ids.update(courses.values_list('problems__id', flat=True))
+    problems = Problem.objects.filter(id__in=problem_ids)
+    
+    logs = ReviewLog.objects.filter(record__in=records)
+    
+    data = {
+        'problems': json.loads(serializers.serialize('json', problems)),
+        'courses': json.loads(serializers.serialize('json', courses)),
+        'records': json.loads(serializers.serialize('json', records)),
+        'logs': json.loads(serializers.serialize('json', logs)),
+    }
+    
+    response = HttpResponse(json.dumps(data, indent=2), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="codeforge_export.json"'
+    return response
+
+def import_data(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        import_file = request.FILES['file']
+        try:
+            data = json.loads(import_file.read().decode('utf-8'))
+            user = get_user()
+            
+            # 1. Import Problems
+            problem_map = {} # old_id -> new_obj
+            for item in data.get('problems', []):
+                fields = item['fields']
+                problem, created = Problem.objects.get_or_create(
+                    source=fields['source'],
+                    source_id=fields['source_id'],
+                    defaults={
+                        'title': fields['title'],
+                        'url': fields['url'],
+                        'difficulty': fields['difficulty'],
+                        'pattern_tags': fields['pattern_tags']
+                    }
+                )
+                problem_map[item['pk']] = problem
+                
+            # 2. Import Courses
+            course_map = {} # old_id -> new_obj
+            for item in data.get('courses', []):
+                fields = item['fields']
+                course, created = Course.objects.get_or_create(
+                    user=user,
+                    name=fields['name'],
+                    defaults={
+                        'description': fields['description'],
+                        'language': fields['language'],
+                        'is_paused': fields['is_paused']
+                    }
+                )
+                # Add problems to course
+                for old_prob_id in fields['problems']:
+                    if old_prob_id in problem_map:
+                        course.problems.add(problem_map[old_prob_id])
+                course_map[item['pk']] = course
+                
+            # 3. Import UserProblemRecords
+            record_map = {} # old_id -> new_obj
+            for item in data.get('records', []):
+                fields = item['fields']
+                problem = problem_map.get(fields['problem'])
+                course = course_map.get(fields['course']) if fields['course'] else None
+                
+                if not problem: continue
+                
+                record, created = UserProblemRecord.objects.get_or_create(
+                    user=user,
+                    problem=problem,
+                    course=course,
+                    defaults={
+                        'difficulty': fields['difficulty'],
+                        'stability': fields['stability'],
+                        'last_review_date': fields['last_review_date'],
+                        'next_review_date': fields['next_review_date'],
+                        'total_reviews': fields['total_reviews'],
+                        'current_level': fields['current_level'],
+                        'is_paused': fields['is_paused']
+                    }
+                )
+                # If it already exists, we might want to update it if the imported one is "newer"
+                # For simplicity, we'll just skip if it exists for now, or we could overwrite.
+                # Let's overwrite progress if the imported one has more reviews.
+                if not created and fields['total_reviews'] > record.total_reviews:
+                    record.difficulty = fields['difficulty']
+                    record.stability = fields['stability']
+                    record.last_review_date = fields['last_review_date']
+                    record.next_review_date = fields['next_review_date']
+                    record.total_reviews = fields['total_reviews']
+                    record.current_level = fields['current_level']
+                    record.is_paused = fields['is_paused']
+                    record.save()
+                
+                record_map[item['pk']] = record
+                
+            # 4. Import ReviewLogs
+            for item in data.get('logs', []):
+                fields = item['fields']
+                record = record_map.get(fields['record'])
+                if not record: continue
+                
+                # Check if this log already exists (by date and record)
+                if not ReviewLog.objects.filter(record=record, review_date=fields['review_date']).exists():
+                    ReviewLog.objects.create(
+                        record=record,
+                        review_date=fields['review_date'],
+                        rating=fields['rating'],
+                        time_spent=fields['time_spent'],
+                        user_insight=fields['user_insight']
+                    )
+            
+            return render(request, 'core/data_management.html', {'success': 'Data imported successfully!'})
+        except Exception as e:
+            return render(request, 'core/data_management.html', {'error': f'Error importing data: {str(e)}'})
+            
+    return redirect('data_management')
