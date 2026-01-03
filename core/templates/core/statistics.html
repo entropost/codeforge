@@ -8,22 +8,16 @@
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
     <div class="problem-card" style="text-align: center; padding: 20px;">
-        <h3
-            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
-            Total Problems</h3>
-        <p style="font-size: 2rem; font-weight: 700; margin: 0; color: #007bff;">{{ total_problems }}</p>
+        <h3 class="stat-label">Total Problems</h3>
+        <p class="stat-value" style="color: var(--primary-color);">{{ total_problems }}</p>
     </div>
     <div class="problem-card" style="text-align: center; padding: 20px;">
-        <h3
-            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
-            Total Reviews</h3>
-        <p style="font-size: 2rem; font-weight: 700; margin: 0; color: #28a745;">{{ total_reviews }}</p>
+        <h3 class="stat-label">Total Reviews</h3>
+        <p class="stat-value" style="color: #28a745;">{{ total_reviews }}</p>
     </div>
     <div class="problem-card" style="text-align: center; padding: 20px;">
-        <h3
-            style="font-size: 0.9rem; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
-            Success Rate</h3>
-        <p style="font-size: 2rem; font-weight: 700; margin: 0; color: #ffc107;">{{ success_rate }}%</p>
+        <h3 class="stat-label">Success Rate</h3>
+        <p class="stat-value" style="color: #ffc107;">{{ success_rate }}%</p>
     </div>
 </div>
 
@@ -45,7 +39,7 @@
         {% endfor %}
     </div>
     <div
-        style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 10px; font-size: 0.8rem; color: #6c757d;">
+        style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 10px; font-size: 0.8rem; color: var(--muted-text);">
         <span>Less</span>
         <div class="heatmap-day intensity-0"></div>
         <div class="heatmap-day intensity-1"></div>
@@ -62,39 +56,68 @@
 </div>
 
 <style>
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--muted-text);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
     .heatmap-day {
         width: 12px;
         height: 12px;
         border-radius: 2px;
-        background-color: #ebedf0;
+        background-color: var(--heatmap-bg, #ebedf0);
         cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    :root {
+        --heatmap-bg: #ebedf0;
+        --intensity-1: #9be9a8;
+        --intensity-2: #40c463;
+        --intensity-3: #30a14e;
+        --intensity-4: #216e39;
+    }
+
+    [data-theme="dark"] {
+        --heatmap-bg: #2d333b;
+        --intensity-1: #0e4429;
+        --intensity-2: #006d32;
+        --intensity-3: #26a641;
+        --intensity-4: #39d353;
     }
 
     .heatmap-day:hover {
-        border: 1px solid rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--text-color);
     }
 
     .intensity-0 {
-        background-color: #ebedf0;
+        background-color: var(--heatmap-bg);
     }
 
     .intensity-1 {
-        background-color: #9be9a8;
+        background-color: var(--intensity-1);
     }
 
     .intensity-2 {
-        background-color: #40c463;
+        background-color: var(--intensity-2);
     }
 
     .intensity-3 {
-        background-color: #30a14e;
+        background-color: var(--intensity-3);
     }
 
     .intensity-4 {
-        background-color: #216e39;
+        background-color: var(--intensity-4);
     }
-
-    /* Dark mode adjustments if needed, but using GitHub light colors for now */
 </style>
 
 <div style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-bottom: 30px;">
@@ -157,24 +180,41 @@
         });
     });
 
+    function getChartColors() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+            text: isDark ? '#e0e0e0' : '#666',
+            grid: isDark ? '#333' : '#eee',
+        };
+    }
+
+    const colors = getChartColors();
+    Chart.defaults.color = colors.text;
+    Chart.defaults.scale.grid.color = colors.grid;
+
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'bottom',
+                labels: { color: colors.text }
             }
+        },
+        scales: {
+            x: { grid: { color: colors.grid }, ticks: { color: colors.text } },
+            y: { grid: { color: colors.grid }, ticks: { color: colors.text } }
         }
     };
 
     // Activity Chart
-    new Chart(document.getElementById('activityChart'), {
+    const activityChart = new Chart(document.getElementById('activityChart'), {
         type: 'line',
         data: {
             labels: [{% for key in activity_data.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Reviews',
-            data: [{% for value in activity_data.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        label: 'Reviews',
+        data: [{% for value in activity_data.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     borderColor: '#007bff',
         backgroundColor: 'rgba(0, 123, 255, 0.1)',
             fill: true,
@@ -185,13 +225,13 @@
     });
 
     // Upcoming Chart
-    new Chart(document.getElementById('upcomingChart'), {
+    const upcomingChart = new Chart(document.getElementById('upcomingChart'), {
         type: 'bar',
         data: {
             labels: [{% for key in upcoming_data.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Due Reviews',
-            data: [{% for value in upcoming_data.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        label: 'Due Reviews',
+        data: [{% for value in upcoming_data.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     backgroundColor: '#28a745',
         borderColor: '#1e7e34',
             borderWidth: 1
@@ -200,18 +240,19 @@
     options: {
             ...chartOptions,
             scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                ...chartOptions.scales,
+                y: { ...chartOptions.scales.y, beginAtZero: true, ticks: { ...chartOptions.scales.y.ticks, stepSize: 1 } }
         }
     }
     });
 
     // Language Chart
-    new Chart(document.getElementById('languageChart'), {
+    const languageChart = new Chart(document.getElementById('languageChart'), {
         type: 'doughnut',
         data: {
             labels: [{% for key in language_counts.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            data: [{% for value in language_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        data: [{% for value in language_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
             }]
         },
@@ -219,12 +260,12 @@
     });
 
     // Source Chart
-    new Chart(document.getElementById('sourceChart'), {
+    const sourceChart = new Chart(document.getElementById('sourceChart'), {
         type: 'pie',
         data: {
             labels: [{% for key in source_counts.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            data: [{% for value in source_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        data: [{% for value in source_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     backgroundColor: ['#17a2b8', '#fd7e14', '#6610f2', '#e83e8c']
             }]
         },
@@ -232,41 +273,67 @@
     });
 
     // Difficulty Chart
-    new Chart(document.getElementById('difficultyChart'), {
+    const difficultyChart = new Chart(document.getElementById('difficultyChart'), {
         type: 'bar',
         data: {
             labels: [{% for key in difficulty_counts.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Problems',
-            data: [{% for value in difficulty_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        label: 'Problems',
+        data: [{% for value in difficulty_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     backgroundColor: ['#28a745', '#ffc107', '#dc3545']
             }]
         },
     options: {
             ...chartOptions,
             scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                ...chartOptions.scales,
+                y: { ...chartOptions.scales.y, beginAtZero: true, ticks: { ...chartOptions.scales.y.ticks, stepSize: 1 } }
         }
     }
     });
 
     // Level Distribution Chart
-    new Chart(document.getElementById('levelChart'), {
+    const levelChart = new Chart(document.getElementById('levelChart'), {
         type: 'bar',
         data: {
             labels: [{% for key in level_counts.keys %}"{{ key }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Problems',
-            data: [{% for value in level_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
+    datasets: [{
+        label: 'Problems',
+        data: [{% for value in level_counts.values %}{{ value }}{% if not forloop.last %}, {% endif %} {% endfor %}],
     backgroundColor: '#6f42c1'
             }]
         },
     options: {
             ...chartOptions,
             scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                ...chartOptions.scales,
+                y: { ...chartOptions.scales.y, beginAtZero: true, ticks: { ...chartOptions.scales.y.ticks, stepSize: 1 } }
         }
     }
     });
+
+    // Listen for theme changes to update charts
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                const newColors = getChartColors();
+                [activityChart, upcomingChart, languageChart, sourceChart, difficultyChart, levelChart].forEach(chart => {
+                    chart.options.plugins.legend.labels.color = newColors.text;
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x) {
+                            chart.options.scales.x.grid.color = newColors.grid;
+                            chart.options.scales.x.ticks.color = newColors.text;
+                        }
+                        if (chart.options.scales.y) {
+                            chart.options.scales.y.grid.color = newColors.grid;
+                            chart.options.scales.y.ticks.color = newColors.text;
+                        }
+                    }
+                    chart.update();
+                });
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
 </script>
 {% endblock %}

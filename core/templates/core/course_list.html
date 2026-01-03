@@ -12,15 +12,15 @@
         <div>
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                 <h3 style="margin: 0;"><a href="{% url 'course_detail' course.id %}"
-                        style="text-decoration: none; color: #007bff;">{{ course.name }}</a></h3>
+                        style="text-decoration: none; color: var(--primary-color);">{{ course.name }}</a></h3>
                 {% if course.is_paused %}
-                <span
-                    style="background: #ffc107; color: #856404; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Paused</span>
+                <span class="badge badge-warning">Paused</span>
                 {% endif %}
             </div>
-            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 15px;">{{ course.description|truncatewords:20 }}
+            <p style="color: var(--muted-text); font-size: 0.9rem; margin-bottom: 15px;">{{
+                course.description|truncatewords:20 }}
             </p>
-            <div style="font-size: 0.85rem; color: #495057; margin-bottom: 20px;">
+            <div style="font-size: 0.85rem; color: var(--nav-text); margin-bottom: 20px;">
                 <div style="margin-bottom: 5px;"><strong>Language:</strong> {{ course.get_language_display }}</div>
                 <div><strong>Problems:</strong> {{ course.problems.count }}</div>
             </div>
@@ -39,9 +39,29 @@
     </div>
     {% empty %}
     <div class="problem-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-        <p style="color: #6c757d; margin-bottom: 20px;">No courses yet. Create one to get started!</p>
+        <p style="color: var(--muted-text); margin-bottom: 20px;">No courses yet. Create one to get started!</p>
         <a href="{% url 'create_course' %}" class="btn">Create Your First Course</a>
     </div>
     {% endfor %}
 </div>
+
+<style>
+    .badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #ffc107;
+        color: #856404;
+    }
+
+    [data-theme="dark"] .badge-warning {
+        background: #664d03;
+        color: #ffda6a;
+    }
+</style>
 {% endblock %}

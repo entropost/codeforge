@@ -12,16 +12,18 @@
     .problem-table td {
         padding: 15px;
         text-align: left;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
+        transition: border-color 0.3s;
     }
 
     .problem-table th {
-        background: #f8f9fa;
+        background: var(--secondary-bg);
         font-weight: 600;
-        color: #495057;
+        color: var(--nav-text);
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        transition: background-color 0.3s, color 0.3s;
     }
 
     .badge {
@@ -37,9 +39,19 @@
         color: #155724;
     }
 
+    [data-theme="dark"] .badge-easy {
+        background: #1b4332;
+        color: #74c69d;
+    }
+
     .badge-medium {
         background: #fff3cd;
         color: #856404;
+    }
+
+    [data-theme="dark"] .badge-medium {
+        background: #4d3b07;
+        color: #ffda6a;
     }
 
     .badge-hard {
@@ -47,9 +59,19 @@
         color: #721c24;
     }
 
+    [data-theme="dark"] .badge-hard {
+        background: #4a1a1c;
+        color: #ff8a8a;
+    }
+
     .badge-info {
         background: #e7f3ff;
         color: #007bff;
+    }
+
+    [data-theme="dark"] .badge-info {
+        background: #003366;
+        color: #66b2ff;
     }
 
     .badge-warning {
@@ -57,9 +79,24 @@
         color: #856404;
     }
 
+    [data-theme="dark"] .badge-warning {
+        background: #664d03;
+        color: #ffda6a;
+    }
+
     .badge-danger {
         background: #dc3545;
         color: white;
+    }
+
+    .retrievability-bar {
+        width: 100px;
+        background: var(--secondary-bg);
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 5px;
+        transition: background-color 0.3s;
     }
 </style>
 
@@ -86,14 +123,14 @@
                 <td>
                     <div style="font-weight: 600; margin-bottom: 4px;">
                         <a href="{{ record.problem.url }}" target="_blank"
-                            style="text-decoration: none; color: #007bff;">
+                            style="text-decoration: none; color: var(--primary-color);">
                             {{ record.problem.title }}
                         </a>
                     </div>
-                    <div style="font-size: 0.8rem; color: #6c757d;">
+                    <div style="font-size: 0.8rem; color: var(--muted-text);">
                         {{ record.problem.get_source_display }} |
                         {% if record.course %}
-                        <a href="{% url 'course_detail' record.course.id %}" style="color: #6c757d;">
+                        <a href="{% url 'course_detail' record.course.id %}" style="color: var(--muted-text);">
                             {{record.course.name }}</a>
                         {% else %}
                         General
@@ -116,23 +153,23 @@
                 </td>
                 <td>
                     {% if record.next_review_date %}
-                    <div style="font-size: 0.9rem; color: #495057;">{{ record.next_review_date|date:"Y-m-d" }}</div>
+                    <div style="font-size: 0.9rem; color: var(--nav-text);">{{ record.next_review_date|date:"Y-m-d" }}
+                    </div>
                     {% if record.next_review_date <= now %} <span class="badge badge-danger">Due</span>
                         {% endif %}
                         {% else %}
-                        <span style="color: #adb5bd; font-size: 0.9rem;">Not scheduled</span>
+                        <span style="color: var(--muted-text); font-size: 0.9rem;">Not scheduled</span>
                         {% endif %}
                 </td>
                 <td>
                     {% with r=record.get_retrievability %}
-                    <div
-                        style="width: 100px; background: #eee; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
+                    <div class="retrievability-bar">
                         <div
                             style="width: {{ r }}%; height: 100%; background: {% if r > 90 %}#28a745{% elif r > 70 %}#ffc107{% else %}#dc3545{% endif %};">
                         </div>
                     </div>
                     <span
-                        style="font-size: 0.8rem; font-weight: 600; color: {% if r > 90 %}#28a745{% elif r > 70 %}#856404{% else %}#dc3545{% endif %};">
+                        style="font-size: 0.8rem; font-weight: 600; color: {% if r > 90 %}#28a745{% elif r > 70 %}#ffc107{% else %}#dc3545{% endif %};">
                         {{ r }}%
                     </span>
                     {% endwith %}
@@ -153,7 +190,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center; padding: 40px; color: #adb5bd;">No problems tracked yet.</td>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--muted-text);">No problems tracked
+                    yet.</td>
             </tr>
             {% endfor %}
         </tbody>

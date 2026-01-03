@@ -1,14 +1,47 @@
 {% extends 'core/base.html' %}
 
 {% block content %}
+<style>
+    .instruction-card {
+        background: var(--secondary-bg);
+        border-left: 5px solid var(--primary-color);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .practice-file-box {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        transition: border-color 0.3s;
+    }
+
+    .practice-file-code {
+        display: block;
+        background: var(--bg-color);
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 5px;
+        word-break: break-all;
+        transition: background-color 0.3s;
+    }
+
+    .timer-display {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text-color);
+        font-variant-numeric: tabular-nums;
+        transition: color 0.3s;
+    }
+</style>
+
 <h1>Review: {{ record.problem.title }}</h1>
-<p style="margin-bottom: 30px; color: #6c757d;">
+<p style="margin-bottom: 30px; color: var(--muted-text);">
     <strong>Source:</strong> <a href="{{ record.problem.url }}" target="_blank"
-        style="color: #007bff; text-decoration: none;">
+        style="color: var(--primary-color); text-decoration: none;">
         {{ record.problem.get_source_display }}</a>
 </p>
 
-<div class="problem-card" style="background: #e9ecef; border-left: 5px solid #007bff;">
+<div class="problem-card instruction-card">
     <h3 style="margin-bottom: 15px;">Instructions</h3>
     <ol style="margin-left: 20px;">
         <li>Open your local editor.</li>
@@ -16,10 +49,9 @@
         <li>Come back here to log your result.</li>
     </ol>
     {% if practice_file_path %}
-    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+    <div class="practice-file-box">
         <strong>Practice File:</strong>
-        <code
-            style="display: block; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px; word-break: break-all;">
+        <code class="practice-file-code">
             {{ practice_file_path }}
         </code>
     </div>
@@ -27,10 +59,10 @@
 </div>
 
 <div class="problem-card" style="text-align: center; margin-bottom: 20px;">
-    <h3 style="margin-bottom: 10px; color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+    <h3
+        style="margin-bottom: 10px; color: var(--muted-text); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
         Focus Timer</h3>
-    <div id="timer-display"
-        style="font-size: 3rem; font-weight: 700; color: #212529; font-variant-numeric: tabular-nums;">
+    <div id="timer-display" class="timer-display">
         00:00:00
     </div>
     <div style="margin-top: 15px;">

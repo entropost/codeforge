@@ -5,10 +5,9 @@
     <div>
         <h2 style="margin-bottom: 10px;">{{ course.name }}</h2>
         {% if course.is_paused %}
-        <span
-            style="background: #ffc107; color: #856404; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 15px;">Paused</span>
+        <span class="badge badge-warning" style="margin-bottom: 15px;">Paused</span>
         {% endif %}
-        <p style="color: #6c757d; font-size: 1.1rem; margin-bottom: 10px;">{{ course.description }}</p>
+        <p style="color: var(--muted-text); font-size: 1.1rem; margin-bottom: 10px;">{{ course.description }}</p>
         <p><strong>Language:</strong> <span class="btn btn-secondary"
                 style="padding: 4px 10px; font-size: 0.85rem; cursor: default;">{{ course.get_language_display }}</span>
         </p>
@@ -22,7 +21,7 @@
 </div>
 
 <div
-    style="margin-bottom: 40px; display: flex; gap: 10px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid #dee2e6;">
+    style="margin-bottom: 40px; display: flex; gap: 10px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
     <a href="{% url 'edit_course' course.id %}" class="btn btn-secondary">Edit Course</a>
     <a href="{% url 'toggle_course_pause' course.id %}" class="btn btn-secondary">
         {% if course.is_paused %}Unpause{% else %}Pause{% endif %} Course
@@ -37,17 +36,16 @@
     <div class="problem-card" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
-            <div style="font-size: 0.85rem; color: #6c757d; display: flex; gap: 15px;">
+            <div style="font-size: 0.85rem; color: var(--muted-text); display: flex; gap: 15px; flex-wrap: wrap;">
                 <span><strong>Source:</strong> {{ record.problem.get_source_display }}</span>
                 <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
                 <span><strong>Level:</strong> {{ record.current_level }}</span>
             </div>
-            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+            <div style="font-size: 0.85rem; color: var(--muted-text); margin-top: 5px;">
                 <strong>Next Review:</strong> {{ record.next_review_date|date:"Y-m-d" }}
             </div>
             {% if record.is_paused %}
-            <span
-                style="background: #ffc107; color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-top: 8px; display: inline-block;">Paused</span>
+            <span class="badge badge-warning" style="margin-top: 8px;">Paused</span>
             {% endif %}
         </div>
         <div style="display: flex; gap: 10px;">
@@ -60,9 +58,29 @@
         </div>
     </div>
     {% empty %}
-    <div class="problem-card" style="text-align: center; padding: 40px; color: #6c757d;">
+    <div class="problem-card" style="text-align: center; padding: 40px; color: var(--muted-text);">
         No problems in this course yet.
     </div>
     {% endfor %}
 </div>
+
+<style>
+    .badge {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #ffc107;
+        color: #856404;
+    }
+
+    [data-theme="dark"] .badge-warning {
+        background: #664d03;
+        color: #ffda6a;
+    }
+</style>
 {% endblock %}

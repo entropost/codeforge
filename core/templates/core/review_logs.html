@@ -6,12 +6,13 @@
 
     {% if latest_review %}
     <div class="problem-card latest-review-card">
-        <h2 style="color: #007bff; margin-bottom: 15px;">Latest Review</h2>
+        <h2 style="color: var(--primary-color); margin-bottom: 15px;">Latest Review</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             <div>
                 <label>Problem</label>
                 <div style="font-weight: 600; font-size: 1.1rem;">{{ latest_review.record.problem.title }}</div>
-                <div style="font-size: 0.85rem; color: #6c757d;">{{ latest_review.record.course.name|default:"General"
+                <div style="font-size: 0.85rem; color: var(--muted-text);">{{
+                    latest_review.record.course.name|default:"General"
                     }}</div>
             </div>
             <div>
@@ -40,26 +41,25 @@
     <div class="problem-card">
         <h3>Chronological History</h3>
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <table class="history-table">
                 <thead>
-                    <tr style="border-bottom: 2px solid #f8f9fa; text-align: left;">
-                        <th style="padding: 12px;">Date</th>
-                        <th style="padding: 12px;">Problem</th>
-                        <th style="padding: 12px;">Status</th>
-                        <th style="padding: 12px;">Time</th>
-                        <th style="padding: 12px;">Insight</th>
+                    <tr>
+                        <th>Date</th>
+                        <th>Problem</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th>Insight</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for log in logs %}
-                    <tr style="border-bottom: 1px solid #f8f9fa; transition: background 0.2s;"
-                        onmouseover="this.style.backgroundColor='#f8f9fa'"
-                        onmouseout="this.style.backgroundColor='transparent'">
-                        <td style="padding: 12px; font-size: 0.9rem; color: #6c757d;">{{ log.review_date|date:"M d, H:i"
+                    <tr class="history-row">
+                        <td class="history-date">{{ log.review_date|date:"M d, H:i"
                             }}</td>
                         <td style="padding: 12px;">
                             <div style="font-weight: 600;">{{ log.record.problem.title }}</div>
-                            <div style="font-size: 0.75rem; color: #adb5bd;">{{ log.record.course.name|default:"General"
+                            <div style="font-size: 0.75rem; color: var(--muted-text);">{{
+                                log.record.course.name|default:"General"
                                 }}</div>
                         </td>
                         <td style="padding: 12px;">
@@ -69,14 +69,14 @@
                             </span>
                         </td>
                         <td style="padding: 12px; font-size: 0.9rem;">{{ log.time_spent|default:"-" }}</td>
-                        <td style="padding: 12px; font-size: 0.85rem; color: #495057; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-                            title="{{ log.user_insight }}">
+                        <td class="history-insight" title="{{ log.user_insight }}">
                             {{ log.user_insight|default:"-" }}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" style="padding: 40px; text-align: center; color: #adb5bd;">No reviews logged
+                        <td colspan="5" style="padding: 40px; text-align: center; color: var(--muted-text);">No reviews
+                            logged
                             yet.</td>
                     </tr>
                     {% endfor %}
@@ -87,6 +87,44 @@
 </div>
 
 <style>
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .history-table th {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid var(--border-color);
+        transition: border-color 0.3s;
+    }
+
+    .history-row {
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s, border-color 0.3s;
+    }
+
+    .history-row:hover {
+        background-color: var(--secondary-bg);
+    }
+
+    .history-date {
+        padding: 12px;
+        font-size: 0.9rem;
+        color: var(--muted-text);
+    }
+
+    .history-insight {
+        padding: 12px;
+        font-size: 0.85rem;
+        color: var(--nav-text);
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .status-badge {
         display: inline-block;
         padding: 6px 12px;
@@ -109,23 +147,35 @@
         color: #155724;
     }
 
+    [data-theme="dark"] .status-pass {
+        background-color: #1b4332;
+        color: #74c69d;
+    }
+
     .status-fail {
         background-color: #f8d7da;
         color: #721c24;
     }
 
+    [data-theme="dark"] .status-fail {
+        background-color: #4a1a1c;
+        color: #ff8a8a;
+    }
+
     .latest-review-card {
-        border-left: 5px solid #007bff;
-        background: linear-gradient(to right, #ffffff, #f0f7ff);
+        border-left: 5px solid var(--primary-color);
+        background: linear-gradient(to right, var(--card-bg), var(--secondary-bg));
+        transition: background 0.3s, border-color 0.3s;
     }
 
     label {
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #adb5bd;
+        color: var(--muted-text);
         margin-bottom: 4px;
         display: block;
+        transition: color 0.3s;
     }
 </style>
 {% endblock %}
