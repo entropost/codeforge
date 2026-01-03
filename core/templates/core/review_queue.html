@@ -27,6 +27,44 @@
         align-items: center;
         border-left: 4px solid #28a745;
     }
+
+    .badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge.easy {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    [data-theme="dark"] .badge.easy {
+        background: #1b4332;
+        color: #74c69d;
+    }
+
+    .badge.medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    [data-theme="dark"] .badge.medium {
+        background: #4d3b07;
+        color: #ffda6a;
+    }
+
+    .badge.hard {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    [data-theme="dark"] .badge.hard {
+        background: #4a1a1c;
+        color: #ff8a8a;
+    }
 </style>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
@@ -58,7 +96,8 @@
                     <div
                         style="font-size: 0.85rem; color: var(--muted-text); display: flex; gap: 15px; flex-wrap: wrap;">
                         <span><strong>Level:</strong> {{ record.current_level }}</span>
-                        <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>
+                        <span><strong>Difficulty:</strong> <span class="badge {{ record.problem.difficulty_class }}">
+                                {{ record.problem.difficulty }}</span></span>
                     </div>
                     <div style="font-size: 0.85rem; color: var(--muted-text); margin-top: 5px;">
                         {% if record.course %}

@@ -368,8 +368,13 @@ def statistics(request):
     # Difficulty Breakdown
     difficulty_counts = {'Easy': 0, 'Medium': 0, 'Hard': 0}
     for r in records:
-        diff = r.problem.difficulty
-        difficulty_counts[diff] = difficulty_counts.get(diff, 0) + 1
+        diff_class = r.problem.difficulty_class
+        if diff_class == 'easy':
+            difficulty_counts['Easy'] += 1
+        elif diff_class == 'medium':
+            difficulty_counts['Medium'] += 1
+        elif diff_class == 'hard':
+            difficulty_counts['Hard'] += 1
         
     # Level Distribution
     level_counts = {}

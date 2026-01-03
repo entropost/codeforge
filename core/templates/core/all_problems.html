@@ -144,7 +144,7 @@
                 </td>
                 <td>
                     <span
-                        class="badge {% if record.problem.difficulty == 'Easy' %}badge-easy{% elif record.problem.difficulty == 'Medium' %}badge-medium{% else %}badge-hard{% endif %}">
+                        class="badge {% if record.problem.difficulty_class == 'easy' %}badge-easy{% elif record.problem.difficulty_class == 'medium' %}badge-medium{% else %}badge-hard{% endif %}">
                         {{ record.problem.difficulty }}
                     </span>
                 </td>

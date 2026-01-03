@@ -14,6 +14,24 @@ class Problem(models.Model):
     class Meta:
         unique_together = ('source', 'source_id')
 
+    @property
+    def difficulty_class(self):
+        """Returns 'easy', 'medium', or 'hard' based on source and difficulty."""
+        if self.source == 'LC':
+            return self.difficulty.lower()
+        elif self.source == 'CF':
+            try:
+                rating = int(self.difficulty)
+                if rating < 1200:
+                    return 'easy'
+                elif rating < 1900:
+                    return 'medium'
+                else:
+                    return 'hard'
+            except (ValueError, TypeError):
+                return 'medium'
+        return 'medium'
+
     def __str__(self):
         return f"{self.get_source_display()} - {self.title}"
 
