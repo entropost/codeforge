@@ -129,7 +129,7 @@ class PracticeFileManager:
         Creates a practice file for the given record.
         Path: <PRACTICE_DIRECTORY>/<course_name>/level <level>/<problem_title>.<ext>
         """
-        if not settings.PRACTICE_DIRECTORY:
+        if not getattr(settings, 'ENABLE_PRACTICE_REPO', True) or not settings.PRACTICE_DIRECTORY:
             return None
 
         import re
@@ -176,6 +176,9 @@ class GitManager:
         """
         Adds and commits the practice file to git.
         """
+        if not getattr(settings, 'ENABLE_PRACTICE_REPO', True):
+            return
+
         if not file_path or not os.path.exists(file_path):
             return
         

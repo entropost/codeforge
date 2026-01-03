@@ -126,6 +126,9 @@ REVIEW_INTERVALS = [1, 3, 7, 14, 30, 90, 180, 365]
 # General practice directory for all courses
 PRACTICE_DIRECTORY = "/home/entropologist/Programming/repos/practice"
 
+# Enable/Disable practice repo operations (file creation and git commits)
+ENABLE_PRACTICE_REPO = True
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
