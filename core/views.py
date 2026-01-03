@@ -144,11 +144,11 @@ def review_queue(request):
     
     due_records = due_records.order_by('next_review_date')
     
-    new_problems = due_records.filter(total_reviews=0)
+    #new_problems = due_records.filter(total_reviews=0)
     pending_reviews = due_records.filter(total_reviews__gt=0)
     
     return render(request, 'core/review_queue.html', {
-        'new_problems': new_problems,
+        #'new_problems': new_problems,
         'pending_reviews': pending_reviews,
         'course_id': course_id
     })
