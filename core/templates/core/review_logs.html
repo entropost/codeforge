@@ -57,7 +57,12 @@
                         <td class="history-date">{{ log.review_date|date:"M d, H:i"
                             }}</td>
                         <td style="padding: 12px;">
-                            <div style="font-weight: 600;">{{ log.record.problem.title }}</div>
+                            <div style="font-weight: 600;">
+                                <a href="{% url 'problem_details' log.record.problem.id %}"
+                                    style="text-decoration: none; color: inherit;">
+                                    {{ log.record.problem.title }}
+                                </a>
+                            </div>
                             <div style="font-size: 0.75rem; color: var(--muted-text);">{{
                                 log.record.course.name|default:"General"
                                 }}</div>

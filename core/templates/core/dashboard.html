@@ -107,7 +107,12 @@
             {% for review in recent_reviews %}
             <li class="activity-item">
                 <div>
-                    <div style="font-weight: 600;">{{ review.record.problem.title }}</div>
+                    <div style="font-weight: 600;">
+                        <a href="{% url 'problem_details' review.record.problem.id %}"
+                            style="text-decoration: none; color: inherit;">
+                            {{ review.record.problem.title }}
+                        </a>
+                    </div>
                     <div style="font-size: 0.8rem; color: var(--muted-text);">{{ review.review_date|date:"M d, Y" }}
                     </div>
                 </div>

@@ -38,7 +38,11 @@
     {% for record in records %}
     <div class="problem-card" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h4 style="margin-bottom: 8px;">{{ record.problem.title }}</h4>
+            <h4 style="margin-bottom: 8px;">
+                <a href="{% url 'problem_details' record.problem.id %}" style="text-decoration: none; color: inherit;">
+                    {{ record.problem.title }}
+                </a>
+            </h4>
             <div style="font-size: 0.85rem; color: var(--muted-text); display: flex; gap: 15px; flex-wrap: wrap;">
                 <span><strong>Source:</strong> {{ record.problem.get_source_display }}</span>
                 <span><strong>Difficulty:</strong> {{ record.problem.difficulty }}</span>

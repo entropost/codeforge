@@ -241,6 +241,92 @@ class DataManagementTest(TestCase):
         response = self.client.post(reverse('import_data'), {'file': import_file})
         self.assertEqual(response.status_code, 200)
         
-        # 4. Verify record updated
         self.record.refresh_from_db()
         self.assertEqual(self.record.total_reviews, 1)
+
+class ProblemDetailsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='password')
+        self.client = Client()
+        self.client.login(username='user', password='password')
+        
+        self.course = Course.objects.create(user=self.user, name="Test Course", language='python')
+        self.problem = Problem.objects.create(
+            source='LC',
+            source_id='test-details',
+            title='Test Details Problem',
+            url='https://leetcode.com/problems/test-details/',
+            difficulty='Medium',
+            pattern_tags=['DP', 'Array']
+        )
+        self.record = UserProblemRecord.objects.create(
+            user=self.user,
+            problem=self.problem,
+            course=self.course,
+            total_reviews=2,
+            current_level=1
+        )
+        
+        from core.models import ReviewLog
+        ReviewLog.objects.create(record=self.record, rating=2)
+        ReviewLog.objects.create(record=self.record, rating=1)
+
+    def test_problem_details_view(self):
+        response = self.client.get(reverse('problem_details', args=[self.problem.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/problem_details.html')
+        
+        # Verify context data
+        self.assertEqual(response.context['problem'], self.problem)
+        self.assertEqual(response.context['total_reviews'], 2)
+        self.assertEqual(response.context['success_rate'], 50.0)
+        self.assertEqual(len(response.context['logs']), 2)
+        
+        # Verify course stats
+        stats = response.context['course_stats'][0]
+        self.assertEqual(stats['course'], 'Test Course')
+        self.assertEqual(stats['language'], 'Python')
+        self.assertEqual(stats['total_reviews'], 2)
+        self.assertEqual(stats['success_rate'], 50.0)
+
+class UILinksTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='password')
+        self.client = Client()
+        self.client.login(username='user', password='password')
+        
+        self.course = Course.objects.create(user=self.user, name="Test Course")
+        self.problem = Problem.objects.create(
+            source='LC',
+            source_id='test-link',
+            title='Test Link Problem',
+            url='https://leetcode.com/problems/test-link/',
+            difficulty='Easy'
+        )
+        self.record = UserProblemRecord.objects.create(
+            user=self.user,
+            problem=self.problem,
+            course=self.course,
+            total_reviews=1
+        )
+        from core.models import ReviewLog
+        ReviewLog.objects.create(record=self.record, rating=2)
+
+    def test_links_present(self):
+        # 1. All Problems
+        response = self.client.get(reverse('all_problems'))
+        self.assertContains(response, f'href="/problems/{self.problem.id}/"')
+        
+        # 2. Course Detail
+        response = self.client.get(reverse('course_detail', args=[self.course.id]))
+        self.assertContains(response, f'href="/problems/{self.problem.id}/"')
+        
+        # 3. Dashboard (Recent Activity)
+        response = self.client.get(reverse('dashboard'))
+        self.assertContains(response, f'href="/problems/{self.problem.id}/"')
+        
+        # 4. Review Logs
+        response = self.client.get(reverse('review_logs'))
+        self.assertContains(response, f'href="/problems/{self.problem.id}/"')
+
+

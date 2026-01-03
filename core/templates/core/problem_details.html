@@ -1,0 +1,250 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="details-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>{{ problem.title }}</h1>
+        {% url 'all_problems' as all_problems_url %}
+        <a href="{{ request.META.HTTP_REFERER|default:all_problems_url }}" class="btn btn-secondary">Back</a>
+    </div>
+
+    <!-- Problem Info & Global Stats -->
+    <div class="problem-card">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div>
+                <label>Source</label>
+                <div style="font-weight: 600;">{{ problem.get_source_display }}</div>
+                <div style="font-size: 0.85rem; color: var(--muted-text);">{{ problem.source_id }}</div>
+            </div>
+            <div>
+                <label>Difficulty</label>
+                <span class="difficulty-badge {{ problem.difficulty|lower }}">{{ problem.difficulty }}</span>
+            </div>
+            <div>
+                <label>Link</label>
+                <a href="{{ problem.url }}" target="_blank"
+                    style="color: var(--primary-color); text-decoration: none;">View Problem &nearr;</a>
+            </div>
+            <div>
+                <label>Total Reviews</label>
+                <div style="font-size: 1.2rem; font-weight: 700;">{{ total_reviews }}</div>
+            </div>
+            <div>
+                <label>Success Rate</label>
+                <div
+                    style="font-size: 1.2rem; font-weight: 700; color: {% if success_rate >= 80 %}var(--success-color, #28a745){% elif success_rate >= 50 %}var(--warning-color, #ffc107){% else %}var(--danger-color, #dc3545){% endif %};">
+                    {{ success_rate }}%
+                </div>
+            </div>
+            <div>
+                <label>Last Review</label>
+                <div>{{ last_review|date:"M d, Y"|default:"Never" }}</div>
+            </div>
+        </div>
+
+        {% if problem.pattern_tags %}
+        <div style="margin-top: 20px;">
+            <label>Tags</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                {% for tag in problem.pattern_tags %}
+                <span class="tag-badge">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Progress by Course -->
+    <div class="problem-card">
+        <h3>Progress by Course</h3>
+        <div style="overflow-x: auto;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Language</th>
+                        <th>Level</th>
+                        <th>Reviews</th>
+                        <th>Success</th>
+                        <th>Next Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in course_stats %}
+                    <tr class="history-row">
+                        <td style="font-weight: 600;">{{ stat.course }}</td>
+                        <td>{{ stat.language }}</td>
+                        <td>{{ stat.level }}</td>
+                        <td>{{ stat.total_reviews }}</td>
+                        <td>{{ stat.success_rate }}%</td>
+                        <td>{{ stat.next_review|date:"M d, Y"|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: var(--muted-text);">No progress
+                            recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activity History -->
+    <div class="problem-card">
+        <h3>Activity History</h3>
+        <div style="overflow-x: auto;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th>Insight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="history-row">
+                        <td class="history-date">{{ log.review_date|date:"M d, H:i" }}</td>
+                        <td>{{ log.record.course.name|default:"General" }}</td>
+                        <td>
+                            <span
+                                class="status-badge-small {% if log.rating == 2 %}status-pass{% else %}status-fail{% endif %}">
+                                {{ log.get_rating_display }}
+                            </span>
+                        </td>
+                        <td>{{ log.time_spent|default:"-" }}</td>
+                        <td class="history-insight" title="{{ log.user_insight }}">
+                            {{ log.user_insight|default:"-" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 40px; text-align: center; color: var(--muted-text);">No reviews
+                            logged yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .history-table th {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid var(--border-color);
+        transition: border-color 0.3s;
+        font-size: 0.9rem;
+        color: var(--muted-text);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .history-row {
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s, border-color 0.3s;
+    }
+
+    .history-row:hover {
+        background-color: var(--secondary-bg);
+    }
+
+    .history-row td {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+
+    .history-date {
+        font-size: 0.9rem;
+        color: var(--muted-text);
+    }
+
+    .history-insight {
+        font-size: 0.85rem;
+        color: var(--nav-text);
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .status-badge-small {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .status-pass {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    [data-theme="dark"] .status-pass {
+        background-color: #1b4332;
+        color: #74c69d;
+    }
+
+    .status-fail {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    [data-theme="dark"] .status-fail {
+        background-color: #4a1a1c;
+        color: #ff8a8a;
+    }
+
+    label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted-text);
+        margin-bottom: 4px;
+        display: block;
+        transition: color 0.3s;
+    }
+
+    .difficulty-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .difficulty-badge.easy {
+        color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+    }
+
+    .difficulty-badge.medium {
+        color: #ffc107;
+        background: rgba(255, 193, 7, 0.1);
+    }
+
+    .difficulty-badge.hard {
+        color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    .tag-badge {
+        background: var(--secondary-bg);
+        color: var(--secondary-text);
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}

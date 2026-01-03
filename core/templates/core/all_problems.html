@@ -122,7 +122,7 @@
             <tr>
                 <td>
                     <div style="font-weight: 600; margin-bottom: 4px;">
-                        <a href="{{ record.problem.url }}" target="_blank"
+                        <a href="{% url 'problem_details' record.problem.id %}"
                             style="text-decoration: none; color: var(--primary-color);">
                             {{ record.problem.title }}
                         </a>

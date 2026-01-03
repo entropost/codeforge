@@ -624,3 +624,46 @@ def import_data(request):
             return render(request, 'core/data_management.html', {'error': f'Error importing data: {str(e)}'})
             
     return redirect('data_management')
+
+def problem_details(request, problem_id):
+    problem = get_object_or_404(Problem, id=problem_id)
+    records = UserProblemRecord.objects.filter(user=get_user(), problem=problem)
+    
+    # Aggregate logs from all records
+    all_logs = ReviewLog.objects.filter(record__in=records).order_by('-review_date')
+    
+    total_reviews = all_logs.count()
+    pass_count = all_logs.filter(rating=2).count()
+    success_rate = (pass_count / total_reviews * 100) if total_reviews > 0 else 0
+    
+    last_review = all_logs.first().review_date if all_logs.exists() else None
+    
+    # Per-course stats
+    course_stats = []
+    for record in records:
+        record_logs = record.logs.all()
+        record_total = record_logs.count()
+        record_pass = record_logs.filter(rating=2).count()
+        record_rate = (record_pass / record_total * 100) if record_total > 0 else 0
+        
+        course_stats.append({
+            'course': record.course.name if record.course else "General",
+            'language': record.course.get_language_display() if record.course else "N/A",
+            'total_reviews': record_total,
+            'success_rate': round(record_rate, 1),
+            'last_review': record.last_review_date,
+            'next_review': record.next_review_date,
+            'difficulty': round(record.difficulty, 2),
+            'stability': round(record.stability, 2),
+            'level': record.current_level,
+        })
+
+    context = {
+        'problem': problem,
+        'total_reviews': total_reviews,
+        'success_rate': round(success_rate, 1),
+        'last_review': last_review,
+        'course_stats': course_stats,
+        'logs': all_logs,
+    }
+    return render(request, 'core/problem_details.html', context)
