@@ -25,6 +25,8 @@ def add_problem(request):
                     data = ProblemFetcher.fetch_leetcode(url)
                 elif 'codeforces.com' in url:
                     data = ProblemFetcher.fetch_codeforces(url)
+                elif 'cses.fi' in url:
+                    data = ProblemFetcher.fetch_cses(url)
                 else:
                     return render(request, 'core/add_problem.html', {'error': 'Only LeetCode and Codeforces URLs supported'})
                 
@@ -89,6 +91,8 @@ def batch_add_problems(request):
                     data = ProblemFetcher.fetch_leetcode(url)
                 elif 'codeforces.com' in url:
                     data = ProblemFetcher.fetch_codeforces(url)
+                elif 'cses.fi' in url:
+                    data = ProblemFetcher.fetch_cses(url)
                 else:
                     results.append({'url': url, 'status': 'error', 'message': 'Unsupported URL'})
                     continue

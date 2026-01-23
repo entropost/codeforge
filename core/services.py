@@ -97,6 +97,46 @@ class ProblemFetcher:
         except requests.RequestException as e:
             raise Exception(f"Network error while fetching from Codeforces: {e}")
 
+    @staticmethod
+    def fetch_cses(url):
+        """
+        Fetches problem details from CSES.
+        """
+        # https://cses.fi/problemset/task/1068
+        try:
+            task_id = url.rstrip('/').split('/')[-1]
+            if not task_id.isdigit():
+                 # Try second to last if trailing slash
+                task_id = url.rstrip('/').split('/')[-2]
+                
+            response = requests.get(url, timeout=10)
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch from CSES: {response.status_code}")
+            
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            title_tag = soup.find('h1')
+            if not title_tag:
+                 raise Exception("Could not find title on CSES page")
+            
+            title = title_tag.text.strip()
+            
+            # CSES doesn't have tags on the problem page usually, but we can try to find the section
+            # For now, we'll leave tags empty or maybe infer from the previous page if we crawled
+            
+            return {
+                'source': 'CS',
+                'source_id': task_id,
+                'title': title,
+                'url': url,
+                'difficulty': 'Medium', # Default
+                'pattern_tags': []
+            }
+
+        except Exception as e:
+             raise Exception(f"Error fetching CSES problem: {e}")
+
 class LevelScheduler:
     def schedule(self, record, rating_val):
         """

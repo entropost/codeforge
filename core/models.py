@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Problem(models.Model):
-    SOURCE_CHOICES = [('LC', 'LeetCode'), ('CF', 'Codeforces')]
+    SOURCE_CHOICES = [('LC', 'LeetCode'), ('CF', 'Codeforces'), ('CS', 'CSES')]
     source = models.CharField(max_length=2, choices=SOURCE_CHOICES)
     source_id = models.CharField(max_length=50)  # 'two-sum' or '123A'
     title = models.CharField(max_length=255)
@@ -30,6 +30,9 @@ class Problem(models.Model):
                     return 'hard'
             except (ValueError, TypeError):
                 return 'medium'
+        elif self.source == 'CS':
+            # CSES doesn't have explicit ratings, default to medium or map sections if we had them stored
+            return 'medium'
         return 'medium'
 
     def __str__(self):
