@@ -185,6 +185,8 @@ class PracticeFileManager:
         ext = 'py'
         if record.course and record.course.language == 'cpp':
             ext = 'cpp'
+        elif record.course and record.course.language == 'c':
+            ext = 'c'
         
         # Sanitize problem title for filename
         filename = f"{sanitize(record.problem.title)}.{ext}"
@@ -200,7 +202,11 @@ class PracticeFileManager:
                     if ext == 'py':
                         f.write(f"# Problem: {record.problem.title}\n")
                         f.write(f"# URL: {record.problem.url}\n\n")
-                    else:
+                    elif ext == 'c':
+                        f.write(f"// Problem: {record.problem.title}\n")
+                        f.write(f"// URL: {record.problem.url}\n\n")
+                        f.write("#include <stdio.h>\n\nint main() {\n    return 0;\n}\n")
+                    elif ext == 'cpp':
                         f.write(f"// Problem: {record.problem.title}\n")
                         f.write(f"// URL: {record.problem.url}\n\n")
                         f.write("#include <iostream>\n\nusing namespace std;\n\nint main() {\n    return 0;\n}\n")

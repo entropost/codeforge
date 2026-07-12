@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1>Add Problem Manually</h1>
+<div class="problem-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_title">Title:</label>
+            {{ form.title }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_difficulty">Difficulty:</label>
+            {{ form.difficulty }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_tags">Tags (comma-separated):</label>
+            {{ form.tags }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_course">Add to Course (Optional):</label>
+            {{ form.course }}
+        </div>
+
+        <button type="submit" class="btn">Add Problem</button>
+    </form>
+</div>
+<p style="margin-top: 15px;"><a href="{% url 'add_problem' %}">Add from URL instead</a></p>
+{% endblock %}

@@ -2,11 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Problem(models.Model):
-    SOURCE_CHOICES = [('LC', 'LeetCode'), ('CF', 'Codeforces'), ('CS', 'CSES')]
+    SOURCE_CHOICES = [('LC', 'LeetCode'), ('CF', 'Codeforces'), ('CS', 'CSES'), ('MN', 'Manual')]
     source = models.CharField(max_length=2, choices=SOURCE_CHOICES)
     source_id = models.CharField(max_length=50)  # 'two-sum' or '123A'
     title = models.CharField(max_length=255)
-    url = models.URLField()
+    url = models.URLField(blank=True)
     difficulty = models.CharField(max_length=10)  # Easy, Medium, Hard
     pattern_tags = models.JSONField(default=list)  # e.g., ['Hash Map', 'Two Pointers']
     created_at = models.DateTimeField(auto_now_add=True)
@@ -33,6 +33,8 @@ class Problem(models.Model):
         elif self.source == 'CS':
             # CSES doesn't have explicit ratings, default to medium or map sections if we had them stored
             return 'medium'
+        elif self.source == 'MN':
+            return self.difficulty.lower()
         return 'medium'
 
     def __str__(self):
@@ -106,6 +108,7 @@ class Course(models.Model):
     LANGUAGE_CHOICES = [
         ('python', 'Python'),
         ('cpp', 'C++'),
+        ('c', 'C'),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)

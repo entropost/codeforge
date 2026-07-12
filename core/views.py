@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
 from .models import Problem, UserProblemRecord, ReviewLog, Course
-from .forms import ProblemForm, ReviewForm, CourseForm
+from .forms import ProblemForm, ReviewForm, CourseForm, ManualProblemForm
 from django.contrib.auth.models import User
 from .services import ProblemFetcher, LevelScheduler, PracticeFileManager, GitManager
 import json
+import uuid
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 
@@ -68,6 +69,43 @@ def add_problem(request):
                 
     courses = Course.objects.filter(user=get_user())
     return render(request, 'core/add_problem.html', {'courses': courses})
+
+def add_problem_manual(request):
+    if request.method == 'POST':
+        form = ManualProblemForm(get_user(), request.POST)
+        if form.is_valid():
+            tags_raw = form.cleaned_data['tags']
+            pattern_tags = [t.strip() for t in tags_raw.split(',') if t.strip()] if tags_raw else []
+
+            source_id = str(uuid.uuid4())[:8]
+
+            problem, created = Problem.objects.get_or_create(
+                source='MN',
+                source_id=source_id,
+                defaults={
+                    'title': form.cleaned_data['title'],
+                    'url': '',
+                    'difficulty': form.cleaned_data['difficulty'],
+                    'pattern_tags': pattern_tags
+                }
+            )
+
+            course = form.cleaned_data.get('course')
+            UserProblemRecord.objects.get_or_create(
+                user=get_user(),
+                problem=problem,
+                course=course,
+                defaults={'next_review_date': timezone.now()}
+            )
+
+            if course:
+                course.problems.add(problem)
+
+            return redirect('review_queue')
+    else:
+        form = ManualProblemForm(get_user())
+
+    return render(request, 'core/add_problem_manual.html', {'form': form})
 
 def batch_add_problems(request):
     if request.method == 'POST':
